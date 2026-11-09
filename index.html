@@ -1,0 +1,2832 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Внутри аппарата</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/"
+      }
+    }
+  </script>
+  <link rel="preload" as="image" href="photos/wake-fallen.jpg">
+  <link rel="preload" as="image" href="photos/wake-hands.jpg">
+  <link rel="preload" as="image" href="photos/wake-stand.jpg">
+  <link rel="preload" as="image" href="photos/comic-zoom.jpg">
+  <link rel="preload" as="image" href="photos/comic-aperture.jpg">
+  <link rel="preload" as="image" href="photos/comic-focus.jpg">
+  <link rel="preload" as="image" href="photos/comic-shutter.jpg">
+  <link rel="preload" as="image" href="photos/comic-iso.jpg?v=restore1">
+  <link rel="preload" as="image" href="photos/finale-scene.jpg">
+  <style>
+    :root {
+      --ink: #241910;
+      --paper: rgba(246, 241, 232, 0.96);
+      --amber: #e7b15a;
+      --bg: #100d0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #f6f1e8;
+      font-family: Manrope, "Segoe UI", sans-serif;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .atmosphere {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background: #100d0b;
+      z-index: 0;
+    }
+
+    .atmosphere::before {
+      content: "";
+      position: absolute;
+      inset: -12%;
+      background:
+        radial-gradient(ellipse 55% 70% at 78% 36%, rgba(255, 232, 196, 0.5), transparent 58%),
+        radial-gradient(ellipse 50% 55% at 18% 78%, rgba(140, 62, 40, 0.18), transparent 62%);
+      animation: develop 16s ease-in-out infinite alternate;
+    }
+
+    @keyframes develop { to { transform: scale(1.06) translate3d(-1%, -1%, 0); } }
+
+    #stage { position: relative; z-index: 1; min-height: 100vh; }
+    button { font: inherit; cursor: pointer; border: 0; }
+
+    .kicker {
+      margin: 0 0 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: #d7b39a;
+    }
+
+    h1, h2 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 500;
+      line-height: 0.98;
+    }
+
+    h1 { font-size: clamp(42px, 6vw, 78px); }
+    h2 { font-size: clamp(26px, 3vw, 36px); color: var(--ink); }
+
+    .lead {
+      margin: 14px 0 0;
+      color: #eadfd2;
+      font-size: 16px;
+      line-height: 1.5;
+      max-width: 34em;
+    }
+
+    .cta, .action, .ghost {
+      margin-top: 22px;
+      padding: 15px 26px;
+      border-radius: 999px;
+    }
+
+    .cta, .action {
+      color: #1a1410;
+      background: #f3d7a1;
+    }
+
+    .cta { animation: pulse 2.6s ease-out infinite; }
+    .cta:hover, .action:hover { background: #fff1d4; }
+
+    .ghost {
+      color: #f6f1e8;
+      background: transparent;
+      box-shadow: inset 0 0 0 1.5px rgba(243, 215, 161, 0.55);
+    }
+
+    .ghost:hover { background: rgba(243, 215, 161, 0.12); }
+
+    .ghost.ink {
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1.5px rgba(36, 25, 16, 0.2);
+    }
+
+    .ghost.ink:hover { background: rgba(36, 25, 16, 0.06); }
+
+    .nav-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .nav-row .ghost, .nav-row .action,
+    .detail-bar .ghost, .detail-bar .action {
+      margin-top: 0;
+    }
+
+    @keyframes pulse {
+      70% { box-shadow: 0 0 0 16px rgba(243, 215, 161, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(243, 215, 161, 0); }
+    }
+
+    .welcome {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      padding: 0 0 12vh 8vw;
+    }
+
+
+    .girl {
+      position: absolute;
+      width: 72px;
+      height: 108px;
+      margin: -108px 0 0 -36px;
+      z-index: 5;
+      transform-origin: 50% 92%;
+      pointer-events: none;
+      transition:
+        left 1.1s cubic-bezier(.4,.1,.2,1),
+        top 1.1s cubic-bezier(.4,.1,.2,1),
+        transform 0.8s ease,
+        opacity 0.8s ease;
+    }
+
+    .girl canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,.55));
+    }
+
+    .girl.shrink {
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .fall-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 28;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      perspective: 1200px;
+      background: #020100;
+      pointer-events: none;
+    }
+    .fall-layer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 46%, rgba(0,0,0,.55) 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .fall-film {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      background: #000;
+      opacity: 0;
+    }
+    .fall-morph {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      top: 48%;
+      width: min(340px, 72vw);
+      height: min(520px, 76vh);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .fall-morph canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .fall-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      animation: camFlash 1.35s ease-out forwards;
+      mix-blend-mode: screen;
+    }
+    @keyframes camFlash {
+      0% { opacity: 0; }
+      3% { opacity: 1; }
+      18% { opacity: 0.95; }
+      45% { opacity: 0.45; }
+      100% { opacity: 0; }
+    }
+    .fall-layer.done { opacity: 0; transition: opacity 0.7s ease; }
+    .funnel {
+      position: absolute;
+      left: 50%;
+      top: 62%;
+      width: min(200vw, 1500px);
+      height: min(200vw, 1500px);
+      transform: translate(-50%, -50%) rotateX(62deg);
+      transform-style: preserve-3d;
+      animation: funnelPulse 11s ease-in 0.22s forwards;
+    }
+    .funnel-glass {
+      position: absolute;
+      inset: var(--d, 22%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 38% 32%, rgba(255, 245, 220, 0.55), transparent 28%),
+        radial-gradient(circle at 55% 60%, rgba(120, 180, 255, 0.18), transparent 42%),
+        radial-gradient(circle, rgba(40, 28, 18, 0.15) 0%, rgba(8, 6, 4, 0.55) 55%, #000 78%);
+      box-shadow:
+        inset 0 0 40px rgba(231, 177, 90, 0.35),
+        inset 0 0 80px rgba(0, 0, 0, 0.85),
+        0 0 30px rgba(231, 177, 90, 0.2);
+      transform: translateZ(var(--z, -60px));
+      animation: glassPulse 3.4s ease-in-out infinite;
+    }
+    @keyframes glassPulse {
+      50% { filter: brightness(1.18); }
+    }
+    .funnel-swirl {
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(0, 0, 0, 0) 0 8deg,
+        rgba(8, 5, 3, 0.75) 8deg 14deg
+      );
+      animation: funnelSpinFlat 9s linear infinite;
+      mix-blend-mode: multiply;
+      opacity: 0.65;
+    }
+    .funnel-glow {
+      position: absolute;
+      inset: 4%;
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 16%, rgba(40, 22, 10, 0.35) 40%, #000 76%);
+      box-shadow: 0 0 140px 50px rgba(0, 0, 0, 0.98);
+    }
+    .funnel-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 12%;
+      height: 12%;
+      transform: translate(-50%, -50%) translateZ(-260px);
+      border-radius: 50%;
+      background: radial-gradient(circle, #000 0%, #000 68%, #120a06 88%, transparent 100%);
+      box-shadow: 0 0 90px 60px #000, inset 0 0 50px #000;
+    }
+    .f-ring {
+      position: absolute;
+      inset: var(--d);
+      border-radius: 50%;
+      border: 14px solid #1a120c;
+      border-top-color: #c9a05a;
+      border-left-color: #8a6a3a;
+      border-right-color: #3a2a1a;
+      border-bottom-color: #0c0806;
+      box-shadow:
+        inset 0 0 0 3px rgba(231, 177, 90, 0.35),
+        inset 0 0 24px rgba(0, 0, 0, 0.9),
+        0 0 18px rgba(0, 0, 0, 0.75),
+        0 0 40px rgba(231, 177, 90, 0.12);
+      background:
+        repeating-conic-gradient(
+          from 12deg,
+          transparent 0 14deg,
+          rgba(231, 177, 90, 0.08) 14deg 16deg
+        );
+      animation: funnelSpin 7.2s linear infinite;
+      transform: translateZ(var(--z, 0px));
+    }
+    .f-ring:nth-child(odd) {
+      animation-duration: 9.6s;
+      animation-direction: reverse;
+    }
+    .f-ring.metal {
+      border-width: 22px;
+      border-color: #2a2218;
+      border-top-color: #e7b15a;
+      background: radial-gradient(circle, transparent 58%, rgba(40, 28, 16, 0.55) 78%, rgba(12, 8, 5, 0.9) 100%);
+    }
+    .f-ring.glass-rim {
+      border-width: 10px;
+      border-color: rgba(200, 220, 255, 0.35);
+      border-top-color: rgba(255, 240, 200, 0.75);
+      box-shadow:
+        inset 0 0 30px rgba(180, 210, 255, 0.2),
+        0 0 24px rgba(231, 177, 90, 0.25);
+      background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 62%);
+    }
+    @keyframes funnelSpin {
+      from { transform: translateZ(var(--z, 0px)) rotate(0deg); }
+      to { transform: translateZ(var(--z, 0px)) rotate(360deg); }
+    }
+    @keyframes funnelSpinFlat { to { transform: rotate(360deg); } }
+    @keyframes funnelPulse {
+      0% { transform: translate(-50%, -50%) rotateX(58deg) scale(0.72); }
+      100% { transform: translate(-50%, -50%) rotateX(70deg) scale(1.38); }
+    }
+    @keyframes fallVignette {
+      0% { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+    .fall-stage {
+      position: relative;
+      z-index: 2;
+      width: min(300px, 74vw);
+      height: min(450px, 82vh);
+      transform-style: preserve-3d;
+      animation: shrinkFall 11s linear 0.28s forwards;
+    }
+    .fall-spin {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      animation: fallSpin 11s linear 0.28s forwards;
+    }
+    .fall-stage canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 22px 28px rgba(0,0,0,.7));
+    }
+    @keyframes fallSpin {
+      from { transform: rotateZ(-18deg) rotateY(0deg) rotateX(10deg); }
+      to { transform: rotateZ(2880deg) rotateY(2520deg) rotateX(28deg); }
+    }
+    .wake-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 29;
+      background: #070504;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .wake-layer.out { opacity: 0; transition: opacity 0.7s ease; }
+    .wake-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 18%;
+      opacity: 0;
+      transform: scale(1.06);
+      transition: opacity 0.8s ease;
+    }
+    .wake-frame.on {
+      opacity: 1;
+      animation: wakeZoom 6.8s ease-out forwards;
+    }
+    @keyframes wakeZoom {
+      from { transform: scale(1.16); }
+      to { transform: scale(1); }
+    }
+    .comic-bubble {
+      position: absolute;
+      top: 7%;
+      left: auto;
+      right: max(3vw, 18px);
+      width: min(72vw, 340px);
+      transform: scale(0.72);
+      opacity: 0;
+      z-index: 3;
+      padding: 18px 22px 22px;
+      background: #f7efe4;
+      color: #1c140f;
+      border: 4px solid #1a1210;
+      border-radius: 28px;
+      box-shadow: 8px 10px 0 #1a1210;
+      text-align: center;
+      transition: opacity 0.35s ease, transform 0.45s cubic-bezier(.2,1.4,.3,1);
+    }
+    .comic-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .comic-bubble p {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      font-weight: 700;
+      font-size: clamp(16px, 4.4vw, 22px);
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+    }
+    .comic-bubble p + p { margin-top: 6px; }
+
+    .comic-inspect {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #070504;
+      overflow: hidden;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+    }
+    .comic-inspect.out {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    .comic-inspect .comic-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+      background: #070504;
+    }
+    .comic-inspect video.comic-art {
+      pointer-events: none;
+    }
+    .comic-inspect .comic-ask {
+      position: absolute;
+      left: 50%;
+      bottom: 1.5%;
+      z-index: 3;
+      width: min(94vw, 640px);
+      max-height: 52vh;
+      overflow: auto;
+      transform: translateX(-50%);
+      padding: 12px 14px 14px;
+      background: #f7efe4;
+      color: #1c140f;
+      border: 4px solid #1a1210;
+      border-radius: 24px;
+      box-shadow: 8px 10px 0 #1a1210;
+    }
+    .comic-inspect.side-ask .comic-ask {
+      left: auto;
+      right: max(1.5vw, 10px);
+      bottom: 3%;
+      top: auto;
+      width: min(38vw, 360px);
+      max-height: 86vh;
+      transform: none;
+      padding: 12px 12px 12px;
+    }
+    .comic-inspect.side-ask .comic-ask h2 {
+      font-size: clamp(13px, 2.2vw, 16px);
+    }
+    .comic-inspect.side-ask .option {
+      font-size: 12px;
+      padding: 7px 8px;
+    }
+    @media (max-width: 720px) {
+      .comic-inspect.side-ask .comic-ask {
+        left: 50%;
+        right: auto;
+        bottom: 1%;
+        width: min(96vw, 520px);
+        max-height: 42vh;
+        transform: translateX(-50%);
+      }
+    }
+
+    .finale-mission {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: #0a0807;
+      color: #f6f1e8;
+      overflow: hidden;
+    }
+    .finale-mission .fm-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      filter: brightness(0.96);
+      pointer-events: none;
+    }
+    .finale-mission .fm-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .finale-mission .fm-bubble {
+      position: absolute;
+      top: max(3vh, 16px);
+      right: max(2.5vw, 14px);
+      left: auto;
+      width: min(36vw, 360px);
+      padding: 16px 18px 18px;
+      background: #f7efe4;
+      color: #1c140f;
+      border: 4px solid #1a1210;
+      border-radius: 22px;
+      box-shadow: 8px 10px 0 #1a1210;
+      text-align: left;
+      pointer-events: auto;
+    }
+    .finale-mission .fm-bubble p {
+      margin: 0;
+      font-weight: 700;
+      font-size: clamp(14px, 1.6vw, 19px);
+      line-height: 1.3;
+    }
+    .finale-mission .fm-bubble p + p { margin-top: 10px; font-weight: 600; font-size: clamp(12px, 1.35vw, 15px); color: #5a4030; }
+    .finale-mission .fm-cta {
+      position: absolute;
+      left: 50%;
+      bottom: max(4vh, 18px);
+      transform: translateX(-50%);
+      margin: 0;
+      z-index: 4;
+      pointer-events: auto;
+    }
+    @media (max-width: 760px) {
+      .finale-mission .fm-bubble {
+        width: min(78vw, 300px);
+        top: max(2vh, 10px);
+        right: max(2vw, 10px);
+        padding: 12px 14px;
+      }
+      .finale-mission .fm-bubble p { font-size: 13px; }
+      .finale-mission .fm-bubble p + p { font-size: 12px; }
+    }
+
+    .shoot-desk {
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 100vw;
+      height: 100vh;
+      padding: 22px 28px 26px;
+      box-sizing: border-box;
+      background: #070708;
+      overflow: auto;
+      color: #eadfd2;
+    }
+    .shoot-desk .brief {
+      position: static;
+      width: min(1080px, 100%);
+      margin: 0;
+      padding: 10px 14px;
+      color: #f3d7a1;
+      font-size: 15px;
+      line-height: 1.4;
+      background: #161412;
+      border-radius: 12px;
+    }
+    .cam-body {
+      flex: 0 1 auto;
+      width: min(1080px, 100%);
+      height: min(74vh, 680px);
+      min-height: 0;
+      border-radius: 18px 28px 22px 16px;
+      display: grid;
+      grid-template-columns: 1.35fr 0.72fr;
+      gap: 0;
+      background:
+        linear-gradient(160deg, #2a2a2c 0%, #161618 42%, #0e0e10 100%);
+      padding: 0;
+      box-shadow:
+        0 28px 70px rgba(0,0,0,.55),
+        inset 0 1px 0 rgba(255,255,255,.08),
+        inset 0 -8px 16px rgba(0,0,0,.45);
+    }
+    .cam-lcd {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #050507;
+      height: 100%;
+      min-height: 0;
+      box-shadow: inset 0 0 0 3px #0a0a0c, 0 0 0 1px #3a3a40;
+      cursor: ns-resize;
+      touch-action: none;
+    }
+    .cam-lcd .scene {
+      width: 100%;
+      height: 140%;
+      object-fit: cover;
+      display: block;
+      transform-origin: center top;
+      pointer-events: none;
+    }
+    .cam-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to right, transparent calc(33.33% - 0.5px), rgba(255,255,255,.28) calc(33.33% - 0.5px), rgba(255,255,255,.28) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px)),
+        linear-gradient(to right, transparent calc(66.66% - 0.5px), rgba(255,255,255,.28) calc(66.66% - 0.5px), rgba(255,255,255,.28) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(33.33% - 0.5px), rgba(255,255,255,.28) calc(33.33% - 0.5px), rgba(255,255,255,.28) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(66.66% - 0.5px), rgba(255,255,255,.28) calc(66.66% - 0.5px), rgba(255,255,255,.28) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px));
+    }
+    .cam-osd {
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      font-family: "Segoe UI", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #f4f7ff;
+      text-shadow: 0 1px 2px #000;
+      pointer-events: none;
+    }
+    .cam-osd b { font-size: 22px; }
+    .cam-exp {
+      position: absolute;
+      left: 10px; right: 10px; bottom: 8px;
+      height: 18px;
+      border-radius: 3px;
+      background: rgba(8,10,20,.55);
+      color: #d7e4ff;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+    .cam-top {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px 6px;
+    }
+    .cam-eye {
+      width: 92px;
+      height: 36px;
+      border-radius: 8px 8px 16px 16px;
+      background: radial-gradient(circle at 50% 70%, #6a5340 0 8px, #1a1a1c 9px 16px, #0a0a0c 17px);
+      box-shadow: inset 0 -6px 0 #111, 0 2px 0 #2a2a2e;
+    }
+    .tiny-row { display: flex; gap: 6px; align-items: center; }
+    .pill, .round-key {
+      border: 0;
+      color: #ddd;
+      background: #1c1c20;
+      box-shadow: inset 0 0 0 1px #3a3a40, 0 2px 0 #050506;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .pill { padding: 6px 8px; border-radius: 999px; }
+    .round-key {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+    }
+    .cam-grip {
+      position: relative;
+      margin: 0 8px 8px 6px;
+      border-radius: 14px 22px 18px 10px;
+      background:
+        repeating-linear-gradient(128deg, rgba(255,255,255,.04) 0 1px, transparent 1px 4px),
+        linear-gradient(180deg, #2a2a2e, #121214 40%, #0c0c0e);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      justify-items: center;
+      padding: 12px 8px;
+      gap: 8px 6px;
+    }
+    .shutter-btn {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      border: 0;
+      background:
+        radial-gradient(circle at 35% 30%, #f7f7f8, #c8c8cc 42%, #6e6e74 70%, #2a2a2e);
+      box-shadow:
+        0 8px 0 #0a0a0c,
+        0 10px 16px rgba(0,0,0,.45),
+        inset 0 0 0 6px #1c1c20;
+      color: transparent;
+      cursor: pointer;
+    }
+    .shutter-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #0a0a0c; }
+    .shutter-btn:disabled { opacity: 0.55; }
+    .ap-wheel {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      border: 0;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      background:
+        repeating-conic-gradient(from 0deg, #3a3a40 0 7deg, #1a1a1e 7deg 14deg);
+      box-shadow:
+        inset 0 0 0 10px #2c2c32,
+        inset 0 0 0 14px #111114,
+        0 8px 14px rgba(0,0,0,.4);
+      position: relative;
+      color: #f3d7a1;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .ap-wheel span {
+      position: absolute;
+      inset: 28px;
+      border-radius: 50%;
+      background: #1a1a1e;
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 0 0 1px rgba(243,215,161,.35);
+      pointer-events: none;
+    }
+    .set-dial {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      border: 0;
+      background:
+        repeating-conic-gradient(from 8deg, #3c3c42 0 10deg, #1a1a1e 10deg 18deg);
+      box-shadow: inset 0 0 0 8px #2a2a2e, 0 4px 0 #050506;
+      color: #eee;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .mini-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; grid-column: 1 / -1; }
+    .mini-row button {
+      min-width: 64px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 0;
+      color: #f6f1e8;
+      background: #2e2e34;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 2px 0 #09090b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .wheel-tip-wrap {
+      position: relative;
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .wheel-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 12px);
+      transform: translateX(-50%) translateY(4px);
+      width: min(220px, 70vw);
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #1c1914;
+      color: #f3e6cf;
+      border: 1px solid rgba(242, 212, 138, 0.35);
+      box-shadow: 0 10px 24px rgba(0,0,0,.45);
+      font-size: 12px;
+      line-height: 1.35;
+      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+      z-index: 5;
+    }
+    .wheel-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      border: 7px solid transparent;
+      border-top-color: #1c1914;
+    }
+    .ap-wheel:hover + .wheel-tip,
+    .wheel-tip-wrap:focus-within .wheel-tip,
+    .wheel-tip-wrap:hover .wheel-tip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .lock-mark { grid-column: 1 / -1; font-size: 10px; letter-spacing: 0.16em; color: #8d8d92; }
+    .shoot-desk .hint {
+      position: static;
+      width: min(1080px, 100%);
+      margin: 0;
+      padding: 10px 14px;
+      font-size: 15px;
+      line-height: 1.4;
+      background: #161412;
+      border-radius: 12px;
+    }
+    .shoot-desk .hint.bad { color: #e0896a; }
+    .shoot-desk .hint.good { color: #9ecf7a; }
+    @media (max-width: 720px) {
+      .cam-body { grid-template-columns: 1fr; }
+      .cam-grip { margin: 10px 0 0; flex-direction: row; flex-wrap: wrap; }
+    }
+    .comic-inspect .comic-kicker {
+      margin: 0 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #7a5a3a;
+    }
+    .comic-inspect .comic-ask h2 {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(14px, 3vw, 18px);
+      line-height: 1.28;
+      color: #1c140f;
+    }
+    .comic-inspect .options { margin-top: 8px; gap: 6px; }
+    .comic-inspect .option {
+      background: #fff;
+      border: 2px solid #1a1210;
+      box-shadow: 3px 3px 0 #1a1210;
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+    .comic-inspect .option:hover { background: #fff6e8; }
+    .comic-inspect .hint { color: #9a4e28; }
+    .comic-bubble::after,
+    .comic-bubble::before {
+      content: "";
+      position: absolute;
+      left: auto;
+      right: 72%;
+      background: #f7efe4;
+      border: 4px solid #1a1210;
+      border-radius: 50%;
+    }
+    .comic-bubble::after {
+      width: 22px;
+      height: 22px;
+      bottom: -18px;
+    }
+    .comic-bubble::before {
+      width: 12px;
+      height: 12px;
+      bottom: -34px;
+      right: 78%;
+    }
+    .comic-inspect .comic-nav {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+    .comic-inspect .comic-back {
+      margin: 0;
+      padding: 8px 16px;
+      border-radius: 999px;
+      color: #1c140f;
+      background: transparent;
+      box-shadow: inset 0 0 0 2px #1a1210;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .comic-inspect .comic-back:hover {
+      background: rgba(26, 18, 16, 0.06);
+    }
+
+    @keyframes shrinkFall {
+      0% {
+        transform: translate3d(0, -26vh, 180px) scale(1.48);
+        opacity: 1;
+      }
+      18% {
+        transform: translate3d(14vw, -12vh, 110px) scale(1.18);
+      }
+      36% {
+        transform: translate3d(-16vw, 2vh, 40px) scale(0.88);
+      }
+      54% {
+        transform: translate3d(10vw, 14vh, -40px) scale(0.52);
+      }
+      72% {
+        transform: translate3d(-6vw, 24vh, -120px) scale(0.24);
+        opacity: 0.9;
+      }
+      88% {
+        transform: translate3d(2vw, 30vh, -200px) scale(0.08);
+        opacity: 0.5;
+      }
+      100% {
+        transform: translate3d(0, 34vh, -280px) scale(0.015);
+        opacity: 0;
+      }
+    }
+
+    /* map */
+    .game {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(280px, 380px) 1fr;
+    }
+
+    .panel {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 28px 22px;
+    }
+
+    .card {
+      color: var(--ink);
+      background: var(--paper);
+      border-radius: 18px;
+      padding: 22px 20px 18px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    .progress {
+      margin: 0 0 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: #9a6a45;
+    }
+
+    .world-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    .hud { display: none; }
+
+    .world {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 900px; height: 620px;
+      margin: -310px 0 0 -450px;
+      transform-origin: 50% 50%;
+      transition: transform 1.15s cubic-bezier(.4,.1,.2,1);
+    }
+
+    .camera-body {
+      position: absolute;
+      left: 210px;
+      top: 210px;
+      width: 520px;
+      height: 200px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #2f2923, #16120f 55%, #0e0c0a);
+      box-shadow: inset 0 0 0 2px rgba(231, 177, 90, 0.18), inset 0 0 80px rgba(0,0,0,.45);
+    }
+
+    .camera-body::before {
+      content: "";
+      position: absolute;
+      left: -168px;
+      top: 42px;
+      width: 176px;
+      height: 116px;
+      border-radius: 58px 12px 12px 58px;
+      background: repeating-linear-gradient(90deg, #1a1613 0 10px, #2a241e 10px 18px);
+      box-shadow: inset 0 0 0 3px #3a342e;
+    }
+
+    .camera-body::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: 28px;
+      width: 10px;
+      height: 144px;
+      background: #8eae72;
+      box-shadow: 0 0 16px rgba(142, 174, 114, 0.45);
+    }
+
+    .path {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    .path path {
+      fill: none;
+      stroke: rgba(231, 177, 90, 0.35);
+      stroke-width: 3;
+      stroke-dasharray: 8 10;
+      stroke-linecap: round;
+    }
+
+    .node {
+      position: absolute;
+      width: 88px; height: 88px;
+      margin: -44px 0 0 -44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 35% 30%, #4a4038, #1a1613 70%);
+      box-shadow: inset 0 0 0 2px rgba(231, 177, 90, 0.25), 0 10px 24px rgba(0,0,0,.35);
+      transition: transform 0.45s ease, box-shadow 0.45s ease;
+    }
+
+    .node.active {
+      transform: scale(1.12);
+      box-shadow: inset 0 0 0 2px rgba(231, 177, 90, 0.7), 0 0 28px rgba(231, 177, 90, 0.35);
+    }
+
+    .node.done {
+      box-shadow: inset 0 0 0 2px rgba(142, 174, 114, 0.7), 0 0 18px rgba(142, 174, 114, 0.25);
+    }
+
+    .node span {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f2d48a;
+      text-align: center;
+      line-height: 1.2;
+      padding: 0 6px;
+    }
+
+    .node .glyph {
+      width: 28px; height: 28px;
+      margin: 0 auto 4px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f2d48a, #8d5a2b 70%);
+    }
+
+    .exit {
+      position: absolute;
+      right: 70px; top: 50%;
+      width: 54px; height: 90px;
+      margin-top: -45px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #1a1613, #e7b15a 40%, #fff6e4);
+      opacity: 0.35;
+      transition: opacity 0.6s ease;
+    }
+
+    .exit.open { opacity: 1; animation: glow 1.4s ease-in-out infinite alternate; }
+    @keyframes glow { to { box-shadow: 0 0 48px rgba(255, 236, 200, .7); } }
+
+    /* —— inside the part —— */
+    .detail {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #0a0807;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+
+    .detail.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .stage-3d {
+      position: absolute;
+      inset: 0;
+      bottom: 88px;
+      overflow: hidden;
+      cursor: grab;
+      z-index: 1;
+    }
+
+    #gl-stage, #gl-stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .stage-3d.drag { cursor: grabbing; }
+
+    .look {
+      position: absolute;
+      inset: 0;
+      perspective: 760px;
+      perspective-origin: 50% 46%;
+    }
+
+    .room {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: 520px;
+      height: 340px;
+      margin: -170px 0 0 -260px;
+      transform-style: preserve-3d;
+      transform: rotateX(-12deg) rotateY(24deg);
+    }
+
+    .face {
+      position: absolute;
+      backface-visibility: hidden;
+    }
+
+    .face.floor {
+      width: 520px;
+      height: 520px;
+      left: 0;
+      top: 0;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(231,177,90,.12), transparent 42%),
+        repeating-linear-gradient(90deg, #1c1713 0 26px, #16120f 26px 52px);
+      transform: rotateX(90deg) translateZ(-170px);
+    }
+
+    .face.ceil {
+      width: 520px;
+      height: 520px;
+      background: linear-gradient(#1a1613, #0e0c0a);
+      transform: rotateX(-90deg) translateZ(-170px);
+    }
+
+    .face.back {
+      width: 520px;
+      height: 340px;
+      background: linear-gradient(#2a241e, #14110e);
+      transform: translateZ(-260px);
+    }
+
+    .face.left, .face.right {
+      width: 520px;
+      height: 340px;
+      background: linear-gradient(90deg, #1a1613, #241e19);
+    }
+
+    .face.left { transform: rotateY(90deg) translateZ(-260px); }
+    .face.right { transform: rotateY(-90deg) translateZ(-260px); }
+
+    .prop {
+      position: absolute;
+      transform-style: preserve-3d;
+    }
+
+    .hot {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 0;
+      background: #f3d7a1;
+      box-shadow: 0 0 0 6px rgba(243, 215, 161, 0.2), 0 0 18px #f3d7a1;
+      z-index: 6;
+      animation: ping 1.8s ease-out infinite;
+    }
+
+    .hot:hover { transform: scale(1.15); }
+
+    @keyframes ping {
+      70% { box-shadow: 0 0 0 14px rgba(243, 215, 161, 0); }
+    }
+
+    .girl-3d {
+      display: none;
+    }
+
+    .iris-chamber {
+      left: 50%;
+      top: 38%;
+      width: 420px;
+      height: 420px;
+      margin: -210px 0 0 -210px;
+      transform: translateZ(-40px) rotateX(64deg);
+    }
+
+    .iris-chamber .iris-blades {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: repeating-conic-gradient(from 8deg, #4a4038 0 9deg, #16120f 9deg 26deg);
+      box-shadow: inset 0 0 0 16px #2a241e, 0 0 40px rgba(0,0,0,.5);
+      animation: irisSpin 18s linear infinite;
+    }
+
+    .iris-chamber .iris-hole {
+      position: absolute;
+      inset: 28%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff6e0, #e7b15a 40%, #3a2418 72%);
+      animation: irisPulse 5s ease-in-out infinite;
+    }
+
+    @keyframes irisSpin { to { transform: rotate(360deg); } }
+    @keyframes irisPulse {
+      50% { inset: 42%; }
+    }
+
+    .lens-stack {
+      left: 50%;
+      top: 40%;
+      width: 90px;
+      height: 210px;
+      margin: -105px 0 0 -45px;
+      transform: rotateX(-18deg) translateZ(20px);
+    }
+
+    .lens-el {
+      position: absolute;
+      left: 8px;
+      width: 74px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.28);
+      background: linear-gradient(90deg, rgba(180,220,255,.15), rgba(255,255,255,.4), rgba(180,220,255,.12));
+      box-shadow: 0 8px 16px rgba(0,0,0,.35);
+    }
+
+    .lens-el:nth-child(1) { top: 8px; }
+    .lens-el:nth-child(2) { top: 78px; animation: lensSlide 3.6s ease-in-out infinite; }
+    .lens-el:nth-child(3) { top: 160px; }
+
+    @keyframes lensSlide { 50% { transform: translateY(16px); } }
+
+    .helix {
+      position: absolute;
+      left: 50%;
+      top: 18%;
+      width: 160px;
+      height: 220px;
+      margin-left: -80px;
+      border: 2px dashed rgba(231,177,90,.35);
+      border-radius: 80px;
+      transform: rotateY(18deg) translateZ(-40px);
+    }
+
+    .zoom-rings {
+      left: 50%;
+      top: 46%;
+      width: 300px;
+      height: 300px;
+      margin: -150px 0 0 -150px;
+      transform: rotateX(68deg) translateZ(-30px);
+    }
+
+    .zring {
+      position: absolute;
+      left: 50%; top: 50%;
+      border: 4px solid rgba(231,177,90,.5);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .zring:nth-child(1) { width: 100%; height: 100%; }
+    .zring:nth-child(2) { width: 70%; height: 70%; animation: zoomPulse 4s ease-in-out infinite; }
+    .zring:nth-child(3) { width: 38%; height: 38%; background: radial-gradient(circle, #2a211b, #0c0a09); }
+
+    @keyframes zoomPulse { 50% { transform: translate(-50%, -50%) scale(1.08); } }
+
+    .curtains {
+      left: 50%;
+      top: 36%;
+      width: 340px;
+      height: 220px;
+      margin: -110px 0 0 -170px;
+      transform: translateZ(-10px) rotateX(8deg);
+      overflow: hidden;
+      background: #1a1613;
+      box-shadow: inset 0 0 0 8px #2a241e;
+    }
+
+    .curtain {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 52%;
+      background: repeating-linear-gradient(#2c261f, #14110e 12px, #2c261f 13px);
+    }
+
+    .curtain.top { top: 0; animation: cTop 3s ease-in-out infinite; }
+    .curtain.bot { bottom: 0; animation: cBot 3s ease-in-out infinite; }
+
+    @keyframes cTop {
+      35%, 55% { transform: translateY(-88%); }
+      0%, 15%, 85%, 100% { transform: none; }
+    }
+
+    @keyframes cBot {
+      35%, 55% { transform: translateY(88%); }
+      0%, 15%, 85%, 100% { transform: none; }
+    }
+
+    .slit-light {
+      position: absolute;
+      left: 0; right: 0; top: 46%;
+      height: 10%;
+      background: linear-gradient(transparent, rgba(255,246,220,.85), transparent);
+      animation: slitMove 3s ease-in-out infinite;
+    }
+
+    @keyframes slitMove {
+      0%, 20%, 80%, 100% { opacity: 0; }
+      40%, 55% { opacity: 1; }
+    }
+
+    .pixels {
+      left: 50%;
+      top: 48%;
+      width: 360px;
+      height: 240px;
+      margin: -120px 0 0 -180px;
+      transform: rotateX(62deg) translateZ(-40px);
+      background:
+        linear-gradient(rgba(231,177,90,.2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(231,177,90,.2) 1px, transparent 1px),
+        #1a1410;
+      background-size: 22px 22px, 22px 22px, auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,.4);
+    }
+
+    .pixels::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      animation: noiseGain 4s ease-in-out infinite;
+    }
+
+    @keyframes noiseGain {
+      0%, 100% { opacity: 0.08; }
+      50% { opacity: 0.55; }
+    }
+
+    .scene-label {
+      position: absolute;
+      left: 24px;
+      top: 22px;
+      z-index: 9;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: #d7b39a;
+      pointer-events: none;
+    }
+
+    .look-hint {
+      position: absolute;
+      right: 24px;
+      top: 46px;
+      z-index: 9;
+      font-size: 13px;
+      color: #eadfd2;
+      opacity: 0.75;
+      pointer-events: none;
+      max-width: 48%;
+      text-align: right;
+    }
+
+    .bit-note {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 92px;
+      z-index: 9;
+      max-width: 520px;
+      color: #eadfd2;
+      font-size: 15px;
+      line-height: 1.45;
+      min-height: 2.6em;
+      pointer-events: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, rgba(12, 9, 8, 0.78), rgba(12, 9, 8, 0.18));
+    }
+
+    .detail-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 20px 28px;
+      background: linear-gradient(transparent, rgba(8,6,5,.85));
+      pointer-events: auto;
+    }
+
+    /* question popup */
+    .quiz-pop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(8, 6, 5, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease;
+    }
+
+    .quiz-pop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .quiz-pop .card {
+      width: min(520px, 100%);
+      transform: none;
+      transition: none;
+    }
+
+    .quiz-pop.show .card {
+      transform: none;
+    }
+
+    .options { display: grid; gap: 8px; margin-top: 16px; }
+
+    .option {
+      text-align: left;
+      padding: 11px 13px;
+      border-radius: 12px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid rgba(36, 25, 16, 0.08);
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .option:hover { background: #fffaf3; }
+    .option.good { background: #e7f3df; border-color: #8eae72; }
+    .option.bad { animation: shake 0.35s linear; background: #fde8e2; }
+
+    .hint {
+      min-height: 2.2em;
+      margin: 12px 0 0;
+      color: #9a4e28;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @keyframes shake {
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+
+    .finale {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #000;
+      z-index: 40;
+    }
+
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    .gift-wrap {
+      position: absolute;
+      z-index: 2;
+      right: 8%;
+      bottom: 18%;
+      width: 180px; height: 190px;
+      transform-origin: 50% 80%;
+    }
+
+    .gift-wrap.shake { animation: wobble 0.7s ease-in-out 2; }
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-4deg); }
+      75% { transform: rotate(4deg); }
+    }
+
+    .box, .lid {
+      position: absolute;
+      left: 18px;
+      width: 144px;
+      background: #c4473a;
+      border-radius: 8px;
+    }
+
+    .box { top: 72px; height: 104px; box-shadow: 0 16px 30px rgba(0,0,0,.35); }
+    .box::before, .lid::before {
+      content: "";
+      position: absolute;
+      left: 62px; top: 0;
+      width: 20px; height: 100%;
+      background: #f2d48a;
+    }
+
+    .lid {
+      top: 48px; height: 36px;
+      transform-origin: 10% 100%;
+      transition: transform 0.7s cubic-bezier(.2,.8,.2,1);
+      z-index: 3;
+    }
+
+    .lid::after {
+      content: "";
+      position: absolute;
+      left: 58px; top: -22px;
+      width: 28px; height: 22px;
+      border: 7px solid #f2d48a;
+      border-bottom: 0;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .gift-wrap.open .lid { transform: translateY(-28px) rotate(-28deg); }
+    .bow {
+      position: absolute;
+      z-index: 4;
+      left: 74px; top: 18px;
+      width: 32px; height: 22px;
+      background: #f2d48a;
+      border-radius: 50%;
+    }
+    .gift-wrap.open .bow { opacity: 0; }
+    .prize {
+      position: absolute;
+      z-index: 1;
+      left: 50%; top: 78px;
+      width: 92px; height: 70px;
+      margin-left: -46px;
+      border-radius: 12px;
+      background: linear-gradient(160deg, #ffe7a3, #fff);
+      opacity: 0;
+    }
+    .gift-wrap.open .prize { animation: rise 0.8s 0.25s ease forwards; }
+    @keyframes rise { to { opacity: 1; transform: translateY(-36px); } }
+
+    .finale-hero {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      top: 42%;
+      width: min(460px, 78vw);
+      height: min(680px, 74vh);
+      transform: translate(-50%, -52%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .finale-hero.show {
+      animation: girlRise 0.95s 0.2s ease forwards;
+    }
+    .finale-hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      display: block;
+    }
+    @keyframes girlRise {
+      from { opacity: 0; transform: translate(-50%, -40%); }
+      to { opacity: 1; transform: translate(-50%, -52%); }
+    }
+
+    .message {
+      position: absolute;
+      z-index: 5;
+      left: 0; right: 0;
+      bottom: 6%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .message.show { animation: pop 0.55s 0.15s ease forwards; }
+    .message h1 { margin: 0; font-size: clamp(32px, 5vw, 56px); color: #f6f1e8; }
+    .message p {
+      margin: 10px auto 0;
+      max-width: 22em;
+      padding: 0 16px;
+      color: #f2d48a;
+      font-size: clamp(16px, 2.4vw, 22px);
+      line-height: 1.35;
+    }
+    @keyframes pop { to { opacity: 1; transform: none; } }
+
+    @media (max-width: 860px) {
+      body { overflow: auto; }
+      .game { grid-template-columns: 1fr; }
+      .world-wrap { min-height: 46vh; order: -1; }
+      .world { transform: scale(0.52) !important; }
+      .welcome {
+        padding: 0 0 10vh 6vw;
+      }
+      .scene { height: min(360px, 48vh); }
+    }
+  </style>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <main id="stage"></main>
+  <div class="detail" id="detail" aria-hidden="true"></div>
+  <div class="quiz-pop" id="quiz" aria-hidden="true"></div>
+  <script>
+    const nodes = [
+      {
+        id: "zoom",
+        name: "Объектив · зум",
+        backTo: "объектив",
+        blurb: "Свет входит слева, в передние линзы. Группы стекла разъезжаются и сужают угол.",
+        action: "Осмотреть линзы",
+        x: 120, y: 310,
+        cam: { x: 160, y: 310, scale: 1.22 },
+        title: "Стоять на месте и зумить с 35 мм на 85 мм. Что с перспективой?",
+        hint: "Перспективу задаёт точка съёмки. Кольцо зума меняет только угол.",
+        options: [
+          "Она не меняется. Уже становится угол обзора. Сжатие фона появится, если отойти и снова вписать человека",
+          "Она сразу сжимается: телевик плющит пространство, даже если не сделать ни шага",
+          "Она становится шире, как будто подошёл ближе на широкоугольнике"
+        ],
+        answer: 0
+      },
+      {
+        id: "aperture",
+        name: "Диафрагма",
+        backTo: "диафрагму",
+        blurb: "Ирисовые лепестки в середине объектива. Они сходятся и режут свет.",
+        action: "Осмотреть диафрагму",
+        x: 280, y: 310,
+        cam: { x: 300, y: 310, scale: 1.28 },
+        title: "С f/2 на f/8, выдержку и ISO не трогаешь. Что с кадром?",
+        hint: "Ступени: f/2 → 2.8 → 4 → 5.6 → 8. Каждая забирает половину света.",
+        options: [
+          "Кадр светлеет на 4 ступени: число диафрагмы стало больше, значит света тоже",
+          "Кадр темнеет на 4 ступени, а глубина резкости становится больше",
+          "Экспозиция не меняется. Другой становится только форма боке"
+        ],
+        answer: 1
+      },
+      {
+        id: "focus",
+        name: "Фокус",
+        backTo: "фокус",
+        blurb: "Дальше по оси — подвижная группа и мотор. Линза едет, пока кадр не станет резким.",
+        action: "Осмотреть фокус",
+        x: 430, y: 310,
+        cam: { x: 440, y: 310, scale: 1.28 },
+        title: "Почему промах автофокуса на f/1.4 заметнее, чем на f/8?",
+        hint: "На открытой диафрагме зона резкости слишком тонкая.",
+        options: [
+          "Мотор объектива на открытой диафрагме крутится медленнее и чаще не доезжает",
+          "Матрица теряет контраст, когда света слишком много, и фазовый датчик слепнет",
+          "Зона резкости узкая: ошибка в пару сантиметров уже выпадает из неё"
+        ],
+        answer: 2
+      },
+      {
+        id: "shutter",
+        name: "Затвор",
+        backTo: "затвор",
+        blurb: "Перед матрицей — две шторки. На короткой выдержке между ними бежит щель.",
+        action: "Осмотреть затвор",
+        x: 580, y: 310,
+        cam: { x: 590, y: 310, scale: 1.28 },
+        title: "Было 1/125, стало 1/1000. Как не потерять яркость кадра?",
+        hint: "Три ступени короче: света меньше в восемь раз.",
+        options: [
+          "Закрыть диафрагму: короткая выдержка и так даёт более светлый кадр",
+          "Ничего не менять. Выдержка влияет на смаз, но не входит в экспозицию",
+          "Открыть диафрагму на 3 ступени или поднять ISO в 8 раз"
+        ],
+        answer: 2
+      },
+      {
+        id: "iso",
+        name: "Матрица · ISO",
+        backTo: "матрицу",
+        blurb: "Сетка пикселей. Когда света мало, сигнал усиливают — и появляется зерно.",
+        action: "Осмотреть матрицу",
+        x: 730, y: 310,
+        cam: { x: 740, y: 310, scale: 1.28 },
+        title: "ISO с 200 до 1600. Что именно меняется?",
+        hint: "Три ступени усиления. Фотонов от этого больше не становится.",
+        options: [
+          "На матрицу попадает в 8 раз больше фотонов, поэтому кадр светлее и чище",
+          "Сигнал с матрицы усиливают на 3 ступени. Света в сцене больше нет, шум растёт",
+          "Шум уменьшается, если снимать в RAW: высокое ISO как раз его вычищает"
+        ],
+        answer: 1
+      }
+    ];
+
+    const interiors = {
+      aperture: `
+        <div class="prop iris-chamber">
+          <div class="iris-blades"></div>
+          <div class="iris-hole"></div>
+        </div>
+        <button class="hot" type="button" style="left:18%;top:28%" data-note="Лепесток диафрагмы. Их несколько: они сходятся, когда отверстие прикрывают."></button>
+        <button class="hot" type="button" style="left:72%;top:24%" data-note="Шкала чисел: f/2 — открыта, f/8 — прикрыта. Больше число — меньше света."></button>
+        <button class="hot" type="button" style="left:48%;top:62%" data-note="Само отверстие. Через него свет идёт дальше, к затвору и матрице."></button>
+      `,
+      focus: `
+        <div class="prop helix"></div>
+        <div class="prop lens-stack">
+          <span class="lens-el"></span>
+          <span class="lens-el"></span>
+          <span class="lens-el"></span>
+        </div>
+        <button class="hot" type="button" style="left:30%;top:26%" data-note="Передняя линза. Стекло принимает свет первым."></button>
+        <button class="hot" type="button" style="left:48%;top:48%" data-note="Подвижная группа. Мотор сдвигает её, пока нужная плоскость не станет резкой."></button>
+        <button class="hot" type="button" style="left:70%;top:70%" data-note="Геликоид: резьба, по которой линзы едут вперёд и назад."></button>
+      `,
+      zoom: `
+        <div class="prop zoom-rings">
+          <div class="zring"></div>
+          <div class="zring"></div>
+          <div class="zring"></div>
+        </div>
+        <button class="hot" type="button" style="left:22%;top:40%" data-note="Широкая группа. На 35 мм угол обзора больше, в кадр входит больше места."></button>
+        <button class="hot" type="button" style="left:50%;top:30%" data-note="Кольцо зума. Оно меняет угол, а не точку, с которой ты смотришь."></button>
+        <button class="hot" type="button" style="left:74%;top:52%" data-note="Узкая группа. На 85 мм кадр крупнее, но перспектива та же, пока не отойдёшь."></button>
+      `,
+      shutter: `
+        <div class="prop curtains">
+          <div class="curtain top"></div>
+          <div class="curtain bot"></div>
+          <div class="slit-light"></div>
+        </div>
+        <button class="hot" type="button" style="left:28%;top:22%" data-note="Первая шторка. Она уходит и открывает матрицу свету."></button>
+        <button class="hot" type="button" style="left:52%;top:48%" data-note="Щель экспозиции. На короткой выдержке шторки гонятся друг за другом."></button>
+        <button class="hot" type="button" style="left:76%;top:72%" data-note="Вторая шторка. Закрывает кадр и заканчивает выдержку."></button>
+      `,
+      iso: `
+        <div class="prop pixels"></div>
+        <button class="hot" type="button" style="left:24%;top:36%" data-note="Пиксель. Маленькая ячейка, которая ловит фотоны."></button>
+        <button class="hot" type="button" style="left:58%;top:28%" data-note="Микролинза над ячейкой. Собирает свет в точку."></button>
+        <button class="hot" type="button" style="left:70%;top:64%" data-note="Усилитель. Высокое ISO не добавляет света — оно громче читает слабый сигнал, поэтому появляется зерно."></button>
+      `
+    };
+
+    const exitPoint = { x: 840, y: 310 };
+    const stage = document.querySelector("#stage");
+    const detail = document.querySelector("#detail");
+    const quiz = document.querySelector("#quiz");
+    let index = 0;
+    let furthest = 0;
+    let locked = false;
+    let girlEl = null;
+    let worldEl = null;
+    let lookMove = null;
+    let lookUp = null;
+    let worldHandle = null;
+    let comicLayer = null;
+
+    function prevBackLabel(i) {
+      if (i <= 0) return "";
+      return `Вернуться в ${nodes[i - 1].backTo}`;
+    }
+
+    const HERO_SRC = "./photos/hero.jpg";
+    let heroBitmap = null;
+    let heroPink = null;
+    let heroAnimStarted = false;
+
+    function trimHeroCanvas(src, pad) {
+      const ctx = src.getContext("2d");
+      const { data, width, height } = ctx.getImageData(0, 0, src.width, src.height);
+      let minX = width, minY = height, maxX = 0, maxY = 0;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (data[(y * width + x) * 4 + 3] > 16) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (maxX <= minX) return src;
+      minX = Math.max(0, minX - pad);
+      minY = Math.max(0, minY - pad);
+      maxX = Math.min(width - 1, maxX + pad);
+      maxY = Math.min(height - 1, maxY + pad);
+      const out = document.createElement("canvas");
+      out.width = maxX - minX + 1;
+      out.height = maxY - minY + 1;
+      out.getContext("2d").drawImage(src, minX, minY, out.width, out.height, 0, 0, out.width, out.height);
+      return out;
+    }
+
+    function keyGreenCanvas(img) {
+      const c = document.createElement("canvas");
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, w, h);
+      const p = data.data;
+      for (let i = 0; i < p.length; i += 4) {
+        const r = p[i];
+        const g = p[i + 1];
+        const b = p[i + 2];
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        if (max < 30) continue;
+        const d = max - min;
+        const s = max ? d / max : 0;
+        const v = max / 255;
+        let hue = 0;
+        if (d) {
+          if (max === g) hue = ((b - r) / d + 2) * 60;
+          else if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+          else hue = ((r - g) / d + 4) * 60;
+        }
+        if (hue < 0) hue += 360;
+        if (hue > 52 && hue < 150 && s > 0.22 && v > 0.18) {
+          const t = Math.min(1, (s - 0.22) / 0.38);
+          p[i + 3] = Math.round(p[i + 3] * (1 - t) * (1 - t));
+        }
+      }
+      for (let i = 0; i < p.length; i += 4) {
+        if (p[i + 3] < 12) {
+          p[i] = p[i + 1] = p[i + 2] = p[i + 3] = 0;
+          continue;
+        }
+        const r = p[i];
+        let g = p[i + 1];
+        const b = p[i + 2];
+        if (g > r + 6 && g > b + 4) {
+          const spill = Math.min(g - r, g - b) * 0.72;
+          p[i] = Math.min(255, r + spill * 0.12);
+          p[i + 1] = Math.max(r, g - spill);
+          p[i + 2] = Math.min(255, b + spill * 0.08);
+        }
+      }
+      const alpha = new Uint8ClampedArray(w * h);
+      for (let i = 0; i < w * h; i++) alpha[i] = p[i * 4 + 3];
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          let sum = 0, n = 0;
+          for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+              const xx = x + dx, yy = y + dy;
+              if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+              sum += alpha[yy * w + xx];
+              n++;
+            }
+          }
+          const orig = alpha[y * w + x];
+          p[(y * w + x) * 4 + 3] = orig === 0 ? 0 : Math.round(Math.min(orig, sum / n));
+        }
+      }
+      ctx.putImageData(data, 0, 0);
+      return c;
+    }
+
+    function fillInternalHoles(canvas) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const image = ctx.getImageData(0, 0, w, h);
+      const p = image.data;
+      for (let y = 0; y < h; y++) {
+        let left = -1;
+        let right = -1;
+        for (let x = 0; x < w; x++) {
+          if (p[(y * w + x) * 4 + 3] > 40) {
+            if (left < 0) left = x;
+            right = x;
+          }
+        }
+        if (left < 0) continue;
+        for (let x = left; x <= right; x++) {
+          const i = (y * w + x) * 4;
+          if (p[i + 3] > 110) continue;
+          let src = -1;
+          for (let k = 1; k < 64; k++) {
+            const xl = x - k;
+            const xr = x + k;
+            if (xl >= left && p[(y * w + xl) * 4 + 3] > 140) { src = (y * w + xl) * 4; break; }
+            if (xr <= right && p[(y * w + xr) * 4 + 3] > 140) { src = (y * w + xr) * 4; break; }
+          }
+          if (src < 0) continue;
+          p[i] = p[src];
+          p[i + 1] = p[src + 1];
+          p[i + 2] = p[src + 2];
+          p[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function pinkDressCanvas(src) {
+      const c = document.createElement("canvas");
+      c.width = src.width;
+      c.height = src.height;
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(src, 0, 0);
+      const data = ctx.getImageData(0, 0, c.width, c.height);
+      const p = data.data;
+      const h = c.height;
+      const w = c.width;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          if (p[i + 3] < 18) continue;
+          const r = p[i];
+          const g = p[i + 1];
+          const b = p[i + 2];
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          const yn = y / h;
+          const xn = x / w;
+          const warm = r > g + 6 && r > b + 3;
+          const hair = lum > 78 && Math.abs(r - g) < 42 && Math.abs(g - b) < 48 && b > 70;
+          if (hair) continue;
+          if (warm && lum > 36) continue;
+          const turtleneck = yn > 0.29 && yn < 0.4 && xn > 0.4 && xn < 0.64 && lum < 70;
+          if (yn < 0.3 && !turtleneck) continue;
+          if (xn < 0.2 && yn < 0.42 && !turtleneck) continue;
+          if (xn > 0.74 && yn < 0.38) continue;
+          if (xn > 0.64 && yn > 0.38 && yn < 0.78) continue;
+          if (lum < 96) {
+            const lift = 0.42 + lum / 140;
+            p[i] = Math.min(255, Math.round(lum * 2.05 + 58 * lift));
+            p[i + 1] = Math.min(255, Math.round(lum * 0.52 + 16));
+            p[i + 2] = Math.min(255, Math.round(lum * 1.05 + 38));
+          }
+        }
+      }
+      ctx.putImageData(data, 0, 0);
+      fillInternalHoles(c);
+      return c;
+    }
+
+    function ensurePinkHero() {
+      if (!heroPink && heroBitmap) heroPink = pinkDressCanvas(heroBitmap);
+      return heroPink;
+    }
+
+    function drawAliveHero(canvas, t) {
+      const pink = canvas.dataset.dress === "pink" || (canvas.parentElement && canvas.parentElement.dataset.dress === "pink");
+      const src = pink ? ensurePinkHero() || heroBitmap : heroBitmap;
+      if (!src) return;
+      const walking = canvas.parentElement && canvas.parentElement.classList.contains("walk");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(w * 0.5, h * 0.96);
+      const breath = Math.sin(t * 2.05);
+      const step = walking ? Math.sin(t * 9.5) : 0;
+      const bob = walking ? Math.abs(step) * 5 : breath * 1.8;
+      ctx.translate(0, -bob);
+      ctx.rotate(walking ? step * 0.03 : breath * 0.012);
+      ctx.scale(1, 1 - (walking ? Math.abs(step) * 0.012 : breath * 0.008));
+      ctx.drawImage(src, -w * 0.5, -h * 0.96, w, h);
+      ctx.restore();
+    }
+
+    function startHeroAnim() {
+      if (heroAnimStarted) return;
+      heroAnimStarted = true;
+      function frame(now) {
+        const t = now * 0.001;
+        document.querySelectorAll(".hero-canvas").forEach((c) => drawAliveHero(c, t));
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function loadHero() {
+      const img = new Image();
+      img.onload = () => {
+        const keyed = keyGreenCanvas(img);
+        const black = document.createElement("canvas");
+        black.width = keyed.width;
+        black.height = keyed.height;
+        black.getContext("2d").drawImage(keyed, 0, 0);
+        fillInternalHoles(black);
+        heroBitmap = trimHeroCanvas(black, 6);
+        heroPink = trimHeroCanvas(pinkDressCanvas(keyed), 6);
+        startHeroAnim();
+      };
+      img.src = HERO_SRC;
+    }
+
+    function girlParts(extra = "") {
+      return `<div class="${extra}"><canvas class="hero-canvas" width="288" height="432"></canvas></div>`;
+    }
+
+    function setCamera(node) {
+      if (!worldEl) return;
+      worldEl.style.transform = `translate(${450 - node.cam.x}px, ${310 - node.cam.y}px) scale(${node.cam.scale})`;
+    }
+
+    function placeGirl(x, y, walking) {
+      if (!girlEl) return;
+      girlEl.style.left = x + "px";
+      girlEl.style.top = y + "px";
+      girlEl.classList.toggle("walk", !!walking);
+    }
+
+    function intro() {
+      girlEl = null;
+      worldEl = null;
+      index = 0;
+      furthest = 0;
+      locked = false;
+      stage.innerHTML = `
+        <section class="welcome">
+          <div>
+            <p class="kicker">Квест внутри аппарата</p>
+            <h1>Она уменьшилась<br>и упала в объектив.</h1>
+            <button class="cta" type="button">Войти внутрь</button>
+          </div>
+        </section>
+      `;
+      stage.querySelector(".cta").onclick = startGame;
+    }
+
+    function startGame() {
+      index = 0;
+      furthest = 0;
+      stage.innerHTML = `
+        <div class="game">
+          <section class="panel" id="panel"></section>
+          <section class="world-wrap">
+            <div class="world" id="world">
+              <div class="camera-body"></div>
+              <svg class="path" viewBox="0 0 900 620" aria-hidden="true">
+                <path d="M120 310 L 840 310" />
+              </svg>
+              ${nodes.map((n) => `
+                <div class="node n-${n.id}" id="node-${n.id}" style="left:${n.x}px;top:${n.y}px">
+                  <div><div class="glyph"></div><span>${n.name}</span></div>
+                </div>`).join("")}
+              <div class="exit" id="exit"></div>
+              ${girlParts("girl")}
+            </div>
+          </section>
+        </div>
+      `;
+      girlEl = stage.querySelector(".girl");
+      girlEl.id = "girl";
+      worldEl = stage.querySelector("#world");
+      arriveAt(0, true);
+    }
+
+    function markNodes() {
+      nodes.forEach((n, i) => {
+        const el = stage.querySelector(`#node-${n.id}`);
+        if (!el) return;
+        el.classList.toggle("active", i === index);
+        el.classList.toggle("done", i < furthest && i !== index);
+      });
+    }
+
+    function arriveAt(i, instant) {
+      index = i;
+      markNodes();
+      const node = nodes[i];
+      setCamera(node);
+      placeGirl(node.x, node.y, false);
+      const panel = stage.querySelector("#panel");
+      if (!panel) return;
+      panel.innerHTML = `
+        <article class="card">
+          <p class="progress">Узел ${i + 1} из ${nodes.length}</p>
+          <h2>${node.name}</h2>
+          <p class="lead" style="color:#6d5c4e">${node.blurb} Уменьшись и зайди внутрь: там можно крутить вид и тыкать в светящиеся точки.</p>
+          <div class="nav-row">
+            <button class="ghost ink" type="button" id="back-home">Назад</button>
+            ${i > 0 ? `<button class="ghost ink" type="button" id="back-prev">${prevBackLabel(i)}</button>` : ""}
+          </div>
+          <button class="action" type="button" id="enter">Уменьшиться и войти</button>
+        </article>
+      `;
+      panel.querySelector("#back-home").onclick = intro;
+      const backPrev = panel.querySelector("#back-prev");
+      if (backPrev) backPrev.onclick = retreat;
+      panel.querySelector("#enter").onclick = () => openDetail(i);
+      if (!instant) placeGirl(node.x, node.y, false);
+    }
+
+    let flashAudioCtx = null;
+    function playFlashSound() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!flashAudioCtx) flashAudioCtx = new AC();
+      const ctx = flashAudioCtx;
+      if (ctx.state === "suspended") ctx.resume();
+      const now = ctx.currentTime;
+      const mkNoise = (seconds, fn) => {
+        const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = fn(i / ctx.sampleRate, i);
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        return src;
+      };
+      // Mechanical leaf-shutter clack of an old 20th-century camera
+      const clack = ctx.createOscillator();
+      clack.type = "square";
+      clack.frequency.setValueAtTime(92, now);
+      clack.frequency.exponentialRampToValueAtTime(36, now + 0.09);
+      const clackGain = ctx.createGain();
+      clackGain.gain.setValueAtTime(0.001, now);
+      clackGain.gain.exponentialRampToValueAtTime(0.55, now + 0.008);
+      clackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+      const clackLp = ctx.createBiquadFilter();
+      clackLp.type = "lowpass";
+      clackLp.frequency.value = 900;
+      clack.connect(clackLp);
+      clackLp.connect(clackGain);
+      clackGain.connect(ctx.destination);
+      clack.start(now);
+      clack.stop(now + 0.15);
+      // Soft bulb-flash bloom, longer than a modern strobe
+      const flash = mkNoise(1.35, (t) => {
+        const envelope = Math.exp(-t * 2.1) * (0.55 + 0.45 * Math.exp(-t * 9));
+        return (Math.random() * 2 - 1) * envelope;
+      });
+      const flashBp = ctx.createBiquadFilter();
+      flashBp.type = "bandpass";
+      flashBp.frequency.setValueAtTime(1400, now);
+      flashBp.frequency.exponentialRampToValueAtTime(420, now + 0.9);
+      flashBp.Q.value = 0.45;
+      const flashGain = ctx.createGain();
+      flashGain.gain.setValueAtTime(0.001, now);
+      flashGain.gain.exponentialRampToValueAtTime(0.72, now + 0.04);
+      flashGain.gain.exponentialRampToValueAtTime(0.18, now + 0.45);
+      flashGain.gain.exponentialRampToValueAtTime(0.001, now + 1.25);
+      flash.connect(flashBp);
+      flashBp.connect(flashGain);
+      flashGain.connect(ctx.destination);
+      flash.start(now);
+      // Spring / curtain settle after the pop
+      const settle = mkNoise(0.55, (t) => (Math.random() * 2 - 1) * Math.exp(-t * 7) * 0.35);
+      const settleHp = ctx.createBiquadFilter();
+      settleHp.type = "highpass";
+      settleHp.frequency.value = 1800;
+      const settleGain = ctx.createGain();
+      settleGain.gain.setValueAtTime(0.001, now + 0.12);
+      settleGain.gain.exponentialRampToValueAtTime(0.22, now + 0.16);
+      settleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      settle.connect(settleHp);
+      settleHp.connect(settleGain);
+      settleGain.connect(ctx.destination);
+      settle.start(now + 0.12);
+    }
+
+    function openDetail(i) {
+      playFlashSound();
+      if (girlEl) girlEl.classList.add("shrink");
+      const layer = document.createElement("div");
+      layer.className = "fall-layer";
+      layer.innerHTML = `
+        <video class="fall-film" autoplay muted playsinline poster="photos/fall-enter.jpg?v=restore1" src="photos/fall-lens.mp4?v=restore1"></video>
+        <div class="fall-morph"><canvas class="hero-canvas" width="420" height="640"></canvas></div>
+        <div class="fall-flash" aria-hidden="true"></div>
+      `;
+      document.body.appendChild(layer);
+      const video = layer.querySelector("video");
+      const morph = layer.querySelector(".fall-morph");
+      morph.style.top = "36%";
+      video.style.transform = "none";
+      const t0 = performance.now();
+      (function tick(now) {
+        const t = now - t0;
+        const film = Math.min(1, Math.max(0, (t - 160) / 650));
+        const fall = Math.min(1, Math.max(0, (t - 220) / 1000));
+        video.style.opacity = String(film);
+        morph.style.opacity = String(1 - fall);
+        const y = -50 + fall * 42;
+        const s = 1.05 - fall * 0.72;
+        morph.style.transform = `translate(-50%, ${y.toFixed(1)}%) scale(${Math.max(0.2, s).toFixed(3)})`;
+        if (t < 1400) requestAnimationFrame(tick);
+      })(t0);
+      setTimeout(() => {
+        video.style.opacity = "1";
+        morph.style.opacity = "0";
+        morph.style.transform = "translate(-50%, -8%) scale(0.22)";
+      }, 1350);
+      let woke = false;
+      const goWake = () => {
+        if (woke) return;
+        woke = true;
+        layer.classList.add("done");
+        playWake(() => {
+          detail.classList.add("show");
+          detail.setAttribute("aria-hidden", "false");
+          layer.remove();
+          travelTo(index, true);
+        });
+      };
+      video.addEventListener("ended", goWake);
+      video.addEventListener("error", () => setTimeout(goWake, 3000));
+      setTimeout(() => showInterior(i, false), 2800);
+      setTimeout(goWake, 14500);
+    }
+
+    function playWake(done) {
+      const wake = document.createElement("div");
+      wake.className = "wake-layer";
+      wake.innerHTML = `
+        <img class="wake-frame on" src="photos/wake-fallen.jpg" alt="">
+        <img class="wake-frame" src="photos/wake-hands.jpg" alt="">
+        <img class="wake-frame" src="photos/wake-stand.jpg" alt="">
+        <div class="comic-bubble">
+          <p>Ого, что со мной?!</p>
+          <p>Куда я попала?!</p>
+        </div>
+      `;
+      document.body.appendChild(wake);
+      const frames = [...wake.querySelectorAll(".wake-frame")];
+      const bubble = wake.querySelector(".comic-bubble");
+      const lines = [...bubble.querySelectorAll("p")];
+      setTimeout(() => {
+        frames[0].classList.remove("on");
+        frames[1].classList.add("on");
+      }, 6200);
+      setTimeout(() => bubble.classList.add("show"), 7200);
+      setTimeout(() => {
+        frames[1].classList.remove("on");
+        frames[2].classList.add("on");
+        if (lines[0]) lines[0].textContent = "Ого, что со мной?!";
+        if (lines[1]) lines[1].textContent = "Где я?!";
+      }, 10800);
+      setTimeout(() => {
+        wake.classList.add("out");
+        if (done) done();
+      }, 15000);
+      setTimeout(() => wake.remove(), 16200);
+    }
+
+    function bindAsk(i) {
+      const node = nodes[i];
+      const label = detail.querySelector(".scene-label");
+      const ask = detail.querySelector("#ask");
+      const noteEl = detail.querySelector("#bit-note");
+      const backMap = detail.querySelector("#back-map");
+      const backPrev = detail.querySelector("#back-prev");
+      if (label) label.textContent = node.name;
+      if (ask) {
+        ask.textContent = "Заглянуть в узел";
+        ask.onclick = () => openNodeComic(i);
+      }
+      if (backMap) backMap.onclick = closeToMap;
+      if (backPrev) {
+        if (i > 0) {
+          backPrev.hidden = false;
+          backPrev.textContent = prevBackLabel(i);
+          backPrev.onclick = retreat;
+        } else {
+          backPrev.hidden = true;
+          backPrev.onclick = null;
+        }
+      }
+      if (noteEl) noteEl.textContent = "Дошла до узла — замирает. Дальше вопрос в комиксе.";
+    }
+
+    function showInterior(i, reveal = true) {
+      const node = nodes[i];
+      if (worldHandle) {
+        bindAsk(i);
+        travelTo(i, true);
+        return;
+      }
+      detail.innerHTML = `
+        <p class="scene-label">${node.name}</p>
+        <p class="look-hint">Крути мышью · точки подписывают детали</p>
+        <div class="stage-3d" id="look-stage">
+          <div id="gl-stage"></div>
+          <p class="bit-note" id="bit-note">Свет идёт слева направо: линзы → диафрагма → фокус → затвор → матрица.</p>
+        </div>
+        <div class="detail-bar">
+          <button class="ghost" type="button" id="back-map">Назад</button>
+          <button class="ghost" type="button" id="back-prev" hidden></button>
+          <button class="action" type="button" id="ask">${node.action}</button>
+        </div>
+      `;
+      if (reveal) {
+        detail.classList.add("show");
+        detail.setAttribute("aria-hidden", "false");
+      }
+      bindAsk(i);
+      const noteEl = detail.querySelector("#bit-note");
+      const host = detail.querySelector("#gl-stage");
+        import("./world3d.js?v=paint18").then((mod) => {
+        try {
+          worldHandle = mod.mountNodeScene(host, node.id, (text) => {
+            noteEl.textContent = text;
+          });
+          requestAnimationFrame(() => {
+            window.dispatchEvent(new Event("resize"));
+          });
+        } catch (err) {
+          noteEl.textContent = "Сцену не удалось собрать. Обнови страницу.";
+          console.error(err);
+        }
+      }).catch((err) => {
+        noteEl.textContent = "Сцену не удалось загрузить. Открой страницу через локальный сервер, не как файл.";
+        console.error(err);
+      });
+    }
+
+    function closeDetail() {
+      closeNodeComic();
+      if (worldHandle) {
+        worldHandle.dispose();
+        worldHandle = null;
+      }
+      if (girlEl) girlEl.classList.remove("shrink");
+      detail.classList.remove("show");
+      detail.setAttribute("aria-hidden", "true");
+      detail.innerHTML = "";
+    }
+
+    function closeNodeComic() {
+      locked = false;
+      if (!comicLayer) return;
+      const el = comicLayer;
+      comicLayer = null;
+      const vid = el.querySelector("video");
+      if (vid) {
+        try { vid.pause(); } catch (_) {}
+      }
+      el.classList.add("out");
+      setTimeout(() => el.remove(), 360);
+    }
+
+    let arriveTimer = 0;
+    function travelTo(i, openComic) {
+      clearTimeout(arriveTimer);
+      const node = nodes[i];
+      if (!node) return;
+      let opened = false;
+      const arrive = () => {
+        if (opened) return;
+        opened = true;
+        clearTimeout(arriveTimer);
+        if (openComic) openNodeComic(i);
+      };
+      if (worldHandle && typeof worldHandle.goTo === "function") {
+        worldHandle.goTo(node.id, arrive);
+        arriveTimer = setTimeout(arrive, 3900);
+      } else if (openComic) {
+        openNodeComic(i);
+      }
+    }
+
+    function closeQuiz() {
+      locked = false;
+      quiz.classList.remove("show");
+      quiz.setAttribute("aria-hidden", "true");
+      quiz.innerHTML = "";
+      closeNodeComic();
+    }
+
+    function closeToMap() {
+      closeQuiz();
+      closeDetail();
+      arriveAt(index, true);
+    }
+
+    function retreat() {
+      if (index <= 0) return;
+      closeQuiz();
+      const prev = nodes[index - 1];
+      index -= 1;
+      markNodes();
+      placeGirl(prev.x, prev.y, true);
+      setCamera(prev);
+      if (worldHandle) {
+        bindAsk(index);
+        const noteEl = detail.querySelector("#bit-note");
+        if (noteEl) noteEl.textContent = `Возвращается — к узлу «${prev.name}».`;
+        travelTo(index, true);
+      } else {
+        const panel = stage.querySelector("#panel");
+        if (panel) {
+          panel.innerHTML = `
+            <article class="card">
+              <p class="progress">Переход</p>
+              <h2>Назад, к узлу «${prev.name}»</h2>
+              <p class="lead" style="color:#6d5c4e;margin-top:12px">Человечек идёт против хода света.</p>
+            </article>
+          `;
+        }
+        setTimeout(() => arriveAt(index, false), 1100);
+      }
+    }
+
+    function openQuiz(i) {
+      openNodeComic(i);
+    }
+
+    function openNodeComic(i) {
+      const q = nodes[i];
+      if (!q) return;
+      if (comicLayer) {
+        comicLayer.remove();
+        comicLayer = null;
+      }
+      locked = false;
+      const layer = document.createElement("div");
+      layer.className = "comic-inspect" + (q.id === "iso" ? " side-ask" : "");
+      layer.setAttribute("role", "dialog");
+      layer.innerHTML = `
+        <video class="comic-art" poster="photos/comic-${q.id}.jpg?v=restore1" src="photos/comic-${q.id}.mp4?v=restore1" muted loop playsinline autoplay preload="auto"></video>
+        <div class="comic-ask">
+          <p class="comic-kicker">${q.name}</p>
+          <h2>${q.title}</h2>
+          <div class="options">
+            ${q.options.map((text, oi) => `<button class="option" type="button" data-i="${oi}">${text}</button>`).join("")}
+          </div>
+          <p class="hint"></p>
+          <div class="comic-nav">
+            <button class="comic-back" type="button" id="comic-back">Вернуться</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(layer);
+      comicLayer = layer;
+      const art = layer.querySelector(".comic-art");
+      if (art && art.tagName === "VIDEO") {
+        const fallback = () => {
+          const img = document.createElement("img");
+          img.className = "comic-art";
+          img.src = `photos/comic-${q.id}.jpg?v=restore1`;
+          img.alt = "";
+          art.replaceWith(img);
+        };
+        art.addEventListener("error", fallback, { once: true });
+        const play = art.play();
+        if (play && play.catch) play.catch(() => {});
+      }
+      const hint = layer.querySelector(".hint");
+      const back = layer.querySelector("#comic-back");
+      if (back) {
+        back.onclick = () => {
+          if (locked) return;
+          closeNodeComic();
+          if (i > 0) {
+            setTimeout(() => retreat(), 220);
+          } else {
+            setTimeout(() => closeToMap(), 220);
+          }
+        };
+      }
+      layer.querySelectorAll(".option").forEach((button) => {
+        button.onclick = () => {
+          if (locked) return;
+          const choice = Number(button.dataset.i);
+          if (choice === q.answer) {
+            locked = true;
+            button.classList.add("good");
+            hint.textContent = "Верно.";
+            setTimeout(() => {
+              closeNodeComic();
+              setTimeout(() => advance(), 380);
+            }, 700);
+          } else {
+            button.classList.remove("bad");
+            void button.offsetWidth;
+            button.classList.add("bad");
+            hint.textContent = q.hint;
+          }
+        };
+      });
+    }
+
+    function advance() {
+      locked = false;
+      const from = nodes[index];
+      const fromMark = stage.querySelector(`#node-${from.id}`);
+      if (fromMark) {
+        fromMark.classList.remove("active");
+        fromMark.classList.add("done");
+      }
+
+      if (index + 1 >= nodes.length) {
+        setTimeout(() => {
+          if (worldHandle) closeDetail();
+          openFinalMission();
+        }, 700);
+        return;
+      }
+
+      const next = nodes[index + 1];
+      index += 1;
+      furthest = Math.max(furthest, index);
+      markNodes();
+      placeGirl(next.x, next.y, true);
+      setCamera(next);
+      if (worldHandle) {
+        bindAsk(index);
+        const noteEl = detail.querySelector("#bit-note");
+        if (noteEl) noteEl.textContent = `Идёт дальше — к узлу «${next.name}».`;
+        travelTo(index, true);
+      } else {
+        stage.querySelector("#panel").innerHTML = `
+          <article class="card">
+            <p class="progress">Переход</p>
+            <h2>К узлу «${next.name}»</h2>
+            <p class="lead" style="color:#6d5c4e;margin-top:12px">Человечек идёт по ходу света.</p>
+          </article>
+        `;
+        setTimeout(() => arriveAt(index, false), 1200);
+      }
+    }
+
+    function openFinalMission() {
+      closeNodeComic();
+      const layer = document.createElement("div");
+      layer.className = "finale-mission";
+      layer.innerHTML = `
+        <img class="fm-art" src="photos/final-mission-hero.jpg?v=side" alt="">
+        <div class="fm-overlay">
+          <div class="fm-bubble">
+            <p>Чтобы вернуться в свой мир, тебе осталось выполнить последнее задание.</p>
+            <p>На экране ноутбука — пейзаж. Сними его так, будто ты уже внутри аппарата: открытая диафрагма, короткая выдержка, низкий ISO и горизонт по правилу третей.</p>
+          </div>
+        </div>
+        <button class="action fm-cta" type="button" id="fm-go">К заданию</button>
+      `;
+      document.body.appendChild(layer);
+      layer.querySelector("#fm-go").onclick = () => {
+        layer.remove();
+        openShootDesk();
+      };
+    }
+
+    function openShootDesk() {
+      const desk = document.createElement("div");
+      desk.className = "shoot-desk";
+      desk.innerHTML = `
+        <p class="brief">Симулятор камеры. Крути кольцо диафрагмы вправо до упора — так она открывается. Спуск — круглая кнопка сбоку. Экран двигай вверх-вниз, чтобы опустить горизонт.</p>
+        <div class="cam-body">
+          <div class="cam-top">
+            <div class="tiny-row">
+              <button class="pill" type="button" tabindex="-1">MENU</button>
+              <button class="pill" type="button" tabindex="-1">INFO</button>
+            </div>
+            <div class="cam-eye" aria-hidden="true"></div>
+            <div class="tiny-row">
+              <button class="round-key" type="button" tabindex="-1">AF</button>
+              <button class="round-key" type="button" tabindex="-1">Q</button>
+            </div>
+          </div>
+          <div class="cam-lcd" id="lcd">
+            <img class="scene" id="shoot-scene" src="photos/finale-scene.jpg" alt="">
+            <div class="cam-grid"></div>
+            <div class="cam-osd">
+              <b>M</b>
+              <span id="ap-v">F11</span>
+              <span id="sh-v">1/60</span>
+              <span id="iso-v">ISO 1600</span>
+            </div>
+            <div class="cam-exp">−3 · 2 · 1 · 0 · 1 · 2 · +3</div>
+          </div>
+          <div class="cam-grip">
+            <button class="shutter-btn" type="button" id="shoot-btn" aria-label="Спуск">Снять</button>
+            <button class="set-dial" type="button" tabindex="-1">SET</button>
+            <div class="wheel-tip-wrap">
+              <div class="ap-wheel" id="ap-wheel" role="slider" tabindex="0" aria-label="Кольцо диафрагмы" aria-describedby="wheel-tip"><span id="ap-face">F11</span></div>
+              <div class="wheel-tip" id="wheel-tip" role="tooltip">Тяни кольцо или крути колёсико мыши. Один шаг — одно значение, щелчок значение не сбивает.</div>
+            </div>
+            <div class="mini-row">
+              <button type="button" id="f-close" title="Диафрагма уже" aria-label="f минус">f−</button>
+              <button type="button" id="f-open" title="Диафрагма шире" aria-label="f плюс">f+</button>
+              <button type="button" id="tv-down">Tv −</button>
+              <button type="button" id="tv-up">Tv +</button>
+              <button type="button" id="iso-down">ISO −</button>
+              <button type="button" id="iso-up">ISO +</button>
+            </div>
+            <div class="lock-mark">LOCK</div>
+          </div>
+        </div>
+        <p class="hint" id="shoot-hint">Цель: f/2.8 или шире · 1/250 или короче · ISO 200 или ниже · горизонт на нижней трети.</p>
+      `;
+      document.body.appendChild(desk);
+      const apStops = ["f/11", "f/8", "f/5.6", "f/4", "f/2.8", "f/2", "f/1.4"];
+      const shStops = ["1/30", "1/60", "1/125", "1/250", "1/500", "1/1000"];
+      const isoStops = [100, 200, 400, 800, 1600, 3200, 6400, 12800];
+      let apI = 0;
+      let shI = 1;
+      let isoI = 4;
+      let frame = 50;
+      const scene = desk.querySelector("#shoot-scene");
+      const wheel = desk.querySelector("#ap-wheel");
+      const hint = desk.querySelector("#shoot-hint");
+      const lcd = desk.querySelector("#lcd");
+      const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+      const sync = () => {
+        desk.querySelector("#ap-v").textContent = apStops[apI].replace("f/", "F");
+        desk.querySelector("#ap-face").textContent = apStops[apI].replace("f/", "F");
+        desk.querySelector("#sh-v").textContent = shStops[shI];
+        desk.querySelector("#iso-v").textContent = "ISO " + isoStops[isoI];
+        wheel.style.transform = `rotate(${apI * 28}deg)`;
+        const bright = 0.92 + apI * 0.02 + (4 - isoI) * -0.015 + (shI - 2) * 0.02;
+        scene.style.filter = `brightness(${bright})`;
+        scene.style.transform = `translateY(${(50 - frame) * 0.35}%)`;
+      };
+      const spin = (dir) => {
+        apI = clamp(apI + dir, 0, apStops.length - 1);
+        sync();
+      };
+      let wheelAcc = 0;
+      wheel.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        wheelAcc += e.deltaY;
+        while (wheelAcc <= -50) { spin(1); wheelAcc += 50; }
+        while (wheelAcc >= 50) { spin(-1); wheelAcc -= 50; }
+      }, { passive: false });
+      let dragX = null;
+      let dragAcc = 0;
+      wheel.addEventListener("pointerdown", (e) => {
+        dragX = e.clientX;
+        dragAcc = 0;
+        wheel.setPointerCapture(e.pointerId);
+      });
+      wheel.addEventListener("pointermove", (e) => {
+        if (dragX == null) return;
+        dragAcc += e.clientX - dragX;
+        dragX = e.clientX;
+        while (dragAcc >= 36) { spin(1); dragAcc -= 36; }
+        while (dragAcc <= -36) { spin(-1); dragAcc += 36; }
+      });
+      wheel.addEventListener("pointerup", () => { dragX = null; dragAcc = 0; });
+      wheel.addEventListener("pointercancel", () => { dragX = null; dragAcc = 0; });
+      desk.querySelector("#f-open").onclick = () => spin(1);
+      desk.querySelector("#f-close").onclick = () => spin(-1);
+      desk.querySelector("#tv-down").onclick = () => { shI = clamp(shI - 1, 0, shStops.length - 1); sync(); };
+      desk.querySelector("#tv-up").onclick = () => { shI = clamp(shI + 1, 0, shStops.length - 1); sync(); };
+      desk.querySelector("#iso-down").onclick = () => { isoI = clamp(isoI - 1, 0, isoStops.length - 1); sync(); };
+      desk.querySelector("#iso-up").onclick = () => { isoI = clamp(isoI + 1, 0, isoStops.length - 1); sync(); };
+      let dragY = null;
+      lcd.addEventListener("pointerdown", (e) => {
+        dragY = e.clientY;
+        lcd.setPointerCapture(e.pointerId);
+      });
+      lcd.addEventListener("pointermove", (e) => {
+        if (dragY == null) return;
+        frame = clamp(frame + (e.clientY - dragY) * 0.35, 0, 100);
+        dragY = e.clientY;
+        sync();
+      });
+      lcd.addEventListener("pointerup", () => { dragY = null; });
+      sync();
+      desk.querySelector("#shoot-btn").onclick = () => {
+        const okAp = apI >= 4;
+        const okSh = shI >= 3;
+        const okIso = isoI <= 1;
+        const okFr = frame <= 40;
+        if (okAp && okSh && okIso && okFr) {
+          hint.className = "hint good";
+          hint.textContent = "Кадр принят. Путь наружу открыт.";
+          desk.querySelector("#shoot-btn").disabled = true;
+          setTimeout(() => {
+            desk.remove();
+            goToExit();
+          }, 1100);
+        } else {
+          hint.className = "hint bad";
+          const miss = [];
+          if (!okAp) miss.push("крути кольцо вправо, пока не станет F2.8 или шире");
+          if (!okSh) miss.push("кнопка Tv + до 1/250");
+          if (!okIso) miss.push("кнопка ISO − до 200");
+          if (!okFr) miss.push("потяни картинку на экране вниз");
+          hint.textContent = "Почти. Ещё: " + miss.join("; ") + ".";
+        }
+      };
+    }
+
+    function goToExit() {
+      if (girlEl) delete girlEl.dataset.dress;
+      if (worldEl) {
+        placeGirl(exitPoint.x, exitPoint.y, true);
+        worldEl.style.transform = `translate(${450 - exitPoint.x}px, ${310 - exitPoint.y}px) scale(1.45)`;
+        const exit = stage.querySelector("#exit");
+        if (exit) exit.classList.add("open");
+      }
+      if (stage && stage.querySelector("#panel")) {
+        stage.querySelector("#panel").innerHTML = `
+          <article class="card">
+            <p class="progress">Выход</p>
+            <h2>Задание выполнено</h2>
+            <p class="lead" style="color:#6d5c4e;margin-top:12px">Щель затвора открыта. Дальше — свет и сюрприз.</p>
+          </article>
+        `;
+      }
+      setTimeout(celebrate, 1200);
+    }
+
+    function celebrate() {
+      document.body.innerHTML = `
+        <div class="finale">
+          <canvas id="fire"></canvas>
+          <div class="finale-hero" id="finale-hero">
+            <img src="photos/finale-hero.jpg?v=clean" alt="">
+          </div>
+          <div class="message" id="message">
+            <h1>Подарок твой!</h1>
+            <p>Ты выбралась. Коробка — твоя.</p>
+            <p>С днем рождения, Чудо - женщина!</p>
+          </div>
+        </div>
+      `;
+      const heroStage = document.querySelector("#finale-hero");
+      setTimeout(() => {
+        heroStage.classList.add("show");
+        document.querySelector("#message").classList.add("show");
+        fireworks();
+      }, 400);
+    }
+
+    function fireworks() {
+      const canvas = document.querySelector("#fire");
+      const ctx = canvas.getContext("2d");
+      const sparks = [];
+      const colors = ["#f2d48a", "#fff6e4", "#e26b4a", "#f7b267", "#ffffff"];
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+      let bursts = 0;
+      function burst(x, y) {
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        for (let i = 0; i < 46; i++) {
+          const angle = (Math.PI * 2 * i) / 46;
+          const speed = 2.4 + Math.random() * 4.2;
+          sparks.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color });
+        }
+      }
+      const timer = setInterval(() => {
+        burst(canvas.width * (0.2 + Math.random() * 0.6), canvas.height * (0.15 + Math.random() * 0.35));
+        if (++bursts > 11) clearInterval(timer);
+      }, 280);
+      burst(canvas.width * 0.5, canvas.height * 0.28);
+      (function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        sparks.forEach((s) => {
+          s.x += s.vx; s.y += s.vy; s.vy += 0.025; s.life -= 0.012;
+          ctx.globalAlpha = Math.max(s.life, 0);
+          ctx.fillStyle = s.color;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 3.4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        for (let i = sparks.length - 1; i >= 0; i--) if (sparks[i].life <= 0) sparks.splice(i, 1);
+        if (bursts <= 11 || sparks.length) requestAnimationFrame(frame);
+      })();
+    }
+
+    loadHero();
+    if (/[?&]finale=1/.test(location.search)) {
+      const wait = setInterval(() => {
+        if (!heroBitmap) return;
+        clearInterval(wait);
+        celebrate();
+      }, 40);
+    } else if (/[?&]interior=1/.test(location.search)) {
+      const wait = setInterval(() => {
+        if (!heroBitmap) return;
+        clearInterval(wait);
+        startGame();
+        setTimeout(() => {
+          showInterior(0);
+          setTimeout(() => travelTo(0, true), 900);
+        }, 240);
+      }, 40);
+    } else {
+      intro();
+    }
+  </script>
+</body>
+</html>

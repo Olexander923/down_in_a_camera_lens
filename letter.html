@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Письмо в объективе</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #241910;
+      --muted: #6d5c4e;
+      --paper: #f6f1e8;
+      --paper-edge: #e4d9c8;
+      --bg: #1a1410;
+      --amber: #c56a32;
+      --line: rgba(36, 25, 16, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--paper);
+      font-family: Manrope, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at top, #3a2a22 0%, transparent 55%),
+        var(--bg);
+    }
+
+    main {
+      width: min(640px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+
+    .kicker {
+      margin: 0 0 28px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: #d7b39a;
+    }
+
+    .progress {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .progress span {
+      width: 36px;
+      height: 3px;
+      border-radius: 99px;
+      background: rgba(246, 241, 232, 0.18);
+    }
+
+    .progress span.on { background: #e7c2a4; }
+
+    h1 {
+      margin: 0 0 12px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 500;
+      font-size: clamp(40px, 7vw, 64px);
+      line-height: 0.95;
+    }
+
+    .lead, .prompt {
+      margin: 0;
+      max-width: 34em;
+      color: #eadfd2;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .choices {
+      display: grid;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: 0;
+    }
+
+    .choice {
+      text-align: left;
+      padding: 16px 18px;
+      border-radius: 14px;
+      color: var(--ink);
+      background: var(--paper);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .choice:hover { transform: translateY(-1px); background: #fffaf3; }
+
+    .choice small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .start, .again {
+      margin-top: 28px;
+      padding: 14px 22px;
+      border-radius: 999px;
+      color: var(--paper);
+      background: var(--amber);
+    }
+
+    .card {
+      margin-top: 8px;
+      padding: 28px 28px 32px;
+      color: var(--ink);
+      background: var(--paper);
+      border-radius: 4px 4px 18px 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    .frames {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .frame {
+      min-height: 72px;
+      padding: 12px;
+      background:
+        linear-gradient(160deg, #d8c3a5, #8d6a52 40%, #2c211b);
+      color: #fffaf3;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .letter {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 26px;
+      line-height: 1.35;
+    }
+
+    .letter p { margin: 0 0 10px; }
+
+    .sign {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      font-style: italic;
+    }
+
+    @media (max-width: 520px) {
+      .frames { grid-template-columns: 1fr 1fr; }
+      .letter { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="kicker">Для неё</p>
+    <div id="stage"></div>
+  </main>
+  <script>
+    const steps = [
+      {
+        prompt: "Где первый кадр?",
+        choices: [
+          {
+            label: "Окно на рассвете",
+            note: "Пока город ещё молчит",
+            frame: "Рассвет",
+            line: "Я сняла окно на рассвете, пока город ещё молчал."
+          },
+          {
+            label: "Улица после дождя",
+            note: "Небо осталось на асфальте",
+            frame: "После дождя",
+            line: "Я сняла улицу после дождя: асфальт держал небо."
+          },
+          {
+            label: "Кухня и чашка",
+            note: "Самое тихое место в доме",
+            frame: "Кухня",
+            line: "Я сняла кухню и чашку, из которой ты пьёшь по утрам."
+          }
+        ]
+      },
+      {
+        prompt: "Что попало в кадр вместо лица?",
+        choices: [
+          {
+            label: "Свет на стене",
+            note: "Тонкий и почти случайный",
+            frame: "Свет",
+            line: "В кадре свет на стене, тонкий и почти случайный."
+          },
+          {
+            label: "Моя тень",
+            note: "Не лицо, только контур",
+            frame: "Тень",
+            line: "В кадре моя тень, не лицо."
+          },
+          {
+            label: "Чужие руки",
+            note: "И мысль о твоих",
+            frame: "Руки",
+            line: "В кадре чужие руки. Я подумала о твоих."
+          }
+        ]
+      },
+      {
+        prompt: "Какой жест ты оставляешь ему?",
+        choices: [
+          {
+            label: "Смотрю в камеру",
+            note: "И не отвожу взгляд",
+            frame: "Взгляд",
+            line: "Потом я посмотрела прямо в камеру и не отвела взгляд."
+          },
+          {
+            label: "Отворачиваюсь, но улыбаюсь",
+            note: "Это тоже кадр",
+            frame: "Улыбка",
+            line: "Я отвернулась, но улыбалась. Это тоже кадр."
+          },
+          {
+            label: "Протягиваю снимок, не глядя",
+            note: "Будто боюсь увидеть, как его возьмут",
+            frame: "Жест",
+            line: "Я протянула снимок, не глядя, будто боялась увидеть, как ты его возьмёшь."
+          }
+        ]
+      },
+      {
+        prompt: "Что написать на обороте?",
+        choices: [
+          {
+            label: "Это ты",
+            note: "Коротко, почти шёпотом",
+            frame: "«Это ты»",
+            line: "На обороте я написала: «Это ты»."
+          },
+          {
+            label: "Это я, когда думаю о тебе",
+            note: "Честнее, чем кажется",
+            frame: "«Когда думаю о тебе»",
+            line: "На обороте я написала: «Это я, когда думаю о тебе»."
+          },
+          {
+            label: "Это просто свет. Но я сняла его для тебя",
+            note: "Самая длинная смелость",
+            frame: "«Для тебя»",
+            line: "На обороте я написала: «Это просто свет. Но я сняла его для тебя»."
+          }
+        ]
+      },
+      {
+        prompt: "Как отдать письмо?",
+        choices: [
+          {
+            label: "Сразу",
+            note: "Пока смелость не остыла",
+            frame: "Сразу",
+            line: "И отдала сразу, пока смелость не остыла."
+          },
+          {
+            label: "Вечером",
+            note: "Когда свет станет мягче",
+            frame: "Вечером",
+            line: "Отдала вечером, когда свет стал мягче."
+          },
+          {
+            label: "Лично, из кармана",
+            note: "Когда вы встретитесь",
+            frame: "Из кармана",
+            line: "Положила в карман и отдала лично, когда мы встретились."
+          }
+        ]
+      }
+    ];
+
+    const stage = document.querySelector("#stage");
+    const picks = [];
+
+    function progress(step) {
+      return `<div class="progress">${steps
+        .map((_, i) => `<span class="${i <= step ? "on" : ""}"></span>`)
+        .join("")}</div>`;
+    }
+
+    function intro() {
+      stage.innerHTML = `
+        <h1>Письмо в объективе</h1>
+        <p class="lead">Слов мало, поэтому письмо собирается из кадров. Пять выборов — и на столе лежит открытка.</p>
+        <button class="start" type="button">Снять первый кадр</button>
+      `;
+      stage.querySelector(".start").onclick = () => ask(0);
+    }
+
+    function ask(index) {
+      const step = steps[index];
+      stage.innerHTML = `
+        ${progress(index)}
+        <p class="prompt">${step.prompt}</p>
+        <div class="choices">
+          ${step.choices.map((choice, i) => `
+            <button class="choice" type="button" data-i="${i}">
+              ${choice.label}
+              <small>${choice.note}</small>
+            </button>
+          `).join("")}
+        </div>
+      `;
+      stage.querySelectorAll(".choice").forEach((button) => {
+        button.onclick = () => {
+          picks[index] = step.choices[Number(button.dataset.i)];
+          if (index + 1 < steps.length) ask(index + 1);
+          else finish();
+        };
+      });
+    }
+
+    function finish() {
+      stage.innerHTML = `
+        ${progress(steps.length)}
+        <article class="card">
+          <div class="frames">
+            ${picks.slice(0, 4).map((pick) => `<div class="frame">${pick.frame}</div>`).join("")}
+          </div>
+          <div class="letter">
+            ${picks.map((pick) => `<p>${pick.line}</p>`).join("")}
+            <p class="sign">Твоё письмо из четырёх кадров и одной смелости.</p>
+          </div>
+        </article>
+        <button class="again" type="button">Собрать другое письмо</button>
+      `;
+      stage.querySelector(".again").onclick = () => {
+        picks.length = 0;
+        intro();
+      };
+    }
+
+    intro();
+  </script>
+</body>
+</html>
