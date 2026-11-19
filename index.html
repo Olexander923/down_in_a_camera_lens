@@ -22,7 +22,7 @@
   <link rel="preload" as="image" href="photos/comic-aperture.jpg">
   <link rel="preload" as="image" href="photos/comic-focus.jpg">
   <link rel="preload" as="image" href="photos/comic-shutter.jpg">
-  <link rel="preload" as="image" href="photos/comic-iso.jpg?v=restore1">
+  <link rel="preload" as="image" href="photos/comic-iso.jpg?v=dress1">
   <link rel="preload" as="image" href="photos/finale-scene.jpg">
   <style>
     :root {
@@ -2136,71 +2136,19 @@
       if (!instant) placeGirl(node.x, node.y, false);
     }
 
-    let flashAudioCtx = null;
+    let flashAudio = null;
     function playFlashSound() {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;
-      if (!flashAudioCtx) flashAudioCtx = new AC();
-      const ctx = flashAudioCtx;
-      if (ctx.state === "suspended") ctx.resume();
-      const now = ctx.currentTime;
-      const mkNoise = (seconds, fn) => {
-        const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = fn(i / ctx.sampleRate, i);
-        const src = ctx.createBufferSource();
-        src.buffer = buffer;
-        return src;
-      };
-      // Mechanical leaf-shutter clack of an old 20th-century camera
-      const clack = ctx.createOscillator();
-      clack.type = "square";
-      clack.frequency.setValueAtTime(92, now);
-      clack.frequency.exponentialRampToValueAtTime(36, now + 0.09);
-      const clackGain = ctx.createGain();
-      clackGain.gain.setValueAtTime(0.001, now);
-      clackGain.gain.exponentialRampToValueAtTime(0.55, now + 0.008);
-      clackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-      const clackLp = ctx.createBiquadFilter();
-      clackLp.type = "lowpass";
-      clackLp.frequency.value = 900;
-      clack.connect(clackLp);
-      clackLp.connect(clackGain);
-      clackGain.connect(ctx.destination);
-      clack.start(now);
-      clack.stop(now + 0.15);
-      // Soft bulb-flash bloom, longer than a modern strobe
-      const flash = mkNoise(1.35, (t) => {
-        const envelope = Math.exp(-t * 2.1) * (0.55 + 0.45 * Math.exp(-t * 9));
-        return (Math.random() * 2 - 1) * envelope;
-      });
-      const flashBp = ctx.createBiquadFilter();
-      flashBp.type = "bandpass";
-      flashBp.frequency.setValueAtTime(1400, now);
-      flashBp.frequency.exponentialRampToValueAtTime(420, now + 0.9);
-      flashBp.Q.value = 0.45;
-      const flashGain = ctx.createGain();
-      flashGain.gain.setValueAtTime(0.001, now);
-      flashGain.gain.exponentialRampToValueAtTime(0.72, now + 0.04);
-      flashGain.gain.exponentialRampToValueAtTime(0.18, now + 0.45);
-      flashGain.gain.exponentialRampToValueAtTime(0.001, now + 1.25);
-      flash.connect(flashBp);
-      flashBp.connect(flashGain);
-      flashGain.connect(ctx.destination);
-      flash.start(now);
-      // Spring / curtain settle after the pop
-      const settle = mkNoise(0.55, (t) => (Math.random() * 2 - 1) * Math.exp(-t * 7) * 0.35);
-      const settleHp = ctx.createBiquadFilter();
-      settleHp.type = "highpass";
-      settleHp.frequency.value = 1800;
-      const settleGain = ctx.createGain();
-      settleGain.gain.setValueAtTime(0.001, now + 0.12);
-      settleGain.gain.exponentialRampToValueAtTime(0.22, now + 0.16);
-      settleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-      settle.connect(settleHp);
-      settleHp.connect(settleGain);
-      settleGain.connect(ctx.destination);
-      settle.start(now + 0.12);
+      try {
+        if (!flashAudio) {
+          flashAudio = new Audio("sounds/camera-flash.mp3");
+          flashAudio.preload = "auto";
+        }
+        flashAudio.pause();
+        flashAudio.currentTime = 0;
+        flashAudio.volume = 0.9;
+        const play = flashAudio.play();
+        if (play && typeof play.catch === "function") play.catch(() => {});
+      } catch (_) {}
     }
 
     function openDetail(i) {
@@ -2209,7 +2157,7 @@
       const layer = document.createElement("div");
       layer.className = "fall-layer";
       layer.innerHTML = `
-        <video class="fall-film" autoplay muted playsinline poster="photos/fall-enter.jpg?v=restore1" src="photos/fall-lens.mp4?v=restore1"></video>
+        <video class="fall-film" autoplay muted playsinline poster="photos/fall-enter.jpg?v=smooth4" src="photos/fall-lens.mp4?v=smooth4"></video>
         <div class="fall-morph"><canvas class="hero-canvas" width="420" height="640"></canvas></div>
         <div class="fall-flash" aria-hidden="true"></div>
       `;
@@ -2461,7 +2409,7 @@
       layer.className = "comic-inspect" + (q.id === "iso" ? " side-ask" : "");
       layer.setAttribute("role", "dialog");
       layer.innerHTML = `
-        <video class="comic-art" poster="photos/comic-${q.id}.jpg?v=restore1" src="photos/comic-${q.id}.mp4?v=restore1" muted loop playsinline autoplay preload="auto"></video>
+        <video class="comic-art" poster="photos/comic-${q.id}.jpg?v=dress1" src="photos/comic-${q.id}.mp4?v=dress1" muted loop playsinline autoplay preload="auto"></video>
         <div class="comic-ask">
           <p class="comic-kicker">${q.name}</p>
           <h2>${q.title}</h2>
@@ -2481,7 +2429,7 @@
         const fallback = () => {
           const img = document.createElement("img");
           img.className = "comic-art";
-          img.src = `photos/comic-${q.id}.jpg?v=restore1`;
+          img.src = `photos/comic-${q.id}.jpg?v=dress1`;
           img.alt = "";
           art.replaceWith(img);
         };
