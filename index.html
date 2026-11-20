@@ -458,50 +458,64 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 40%;
+      object-position: center 42%;
       background: #070504;
     }
     .comic-inspect video.comic-art {
       pointer-events: none;
+      filter: contrast(1.05) saturate(1.03);
+    }
+    .comic-inspect[data-node="zoom"] .comic-art {
+      object-position: 40% 48%;
     }
     .comic-inspect .comic-ask {
       position: absolute;
-      left: 50%;
-      bottom: 1.5%;
       z-index: 3;
-      width: min(94vw, 640px);
-      max-height: 52vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: min(34vw, 340px);
+      max-height: calc(100vh - 28px);
       overflow: auto;
-      transform: translateX(-50%);
-      padding: 12px 14px 14px;
-      background: #f7efe4;
-      color: #1c140f;
-      border: 4px solid #1a1210;
-      border-radius: 24px;
-      box-shadow: 8px 10px 0 #1a1210;
-    }
-    .comic-inspect.side-ask .comic-ask {
-      left: auto;
-      right: max(1.5vw, 10px);
-      bottom: 3%;
-      top: auto;
-      width: min(38vw, 360px);
-      max-height: 86vh;
       transform: none;
-      padding: 12px 12px 12px;
+      padding: 12px;
+      background: rgba(247, 239, 228, 0.96);
+      color: #1c140f;
+      border: 3px solid #1a1210;
+      border-radius: 18px;
+      box-shadow: 6px 7px 0 #1a1210;
     }
-    .comic-inspect.side-ask .comic-ask h2 {
-      font-size: clamp(13px, 2.2vw, 16px);
+    .comic-inspect .comic-ask.ask-tr {
+      top: max(2.5vh, 14px);
+      right: max(1.2vw, 12px);
+      left: auto;
+      bottom: auto;
     }
-    .comic-inspect.side-ask .option {
-      font-size: 12px;
-      padding: 7px 8px;
+    .comic-inspect .comic-ask.ask-tl {
+      top: max(2.5vh, 14px);
+      left: max(1.2vw, 12px);
+      right: auto;
+      bottom: auto;
+    }
+    .comic-inspect .comic-ask.ask-br {
+      bottom: max(2vh, 12px);
+      right: max(1.2vw, 12px);
+      left: auto;
+      top: auto;
+    }
+    .comic-inspect .comic-ask.ask-bl {
+      bottom: max(2vh, 12px);
+      left: max(1.2vw, 12px);
+      right: auto;
+      top: auto;
     }
     @media (max-width: 720px) {
+      .comic-inspect .comic-ask,
       .comic-inspect.side-ask .comic-ask {
-        left: 50%;
-        right: auto;
-        bottom: 1%;
+        left: 50% !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: 1% !important;
         width: min(96vw, 520px);
         max-height: 42vh;
         transform: translateX(-50%);
@@ -853,29 +867,47 @@
       .cam-grip { margin: 10px 0 0; flex-direction: row; flex-wrap: wrap; }
     }
     .comic-inspect .comic-kicker {
-      margin: 0 0 6px;
-      font-size: 12px;
-      letter-spacing: 0.12em;
+      margin: 0 0 5px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: #7a5a3a;
     }
     .comic-inspect .comic-ask h2 {
       margin: 0;
+      flex-shrink: 0;
       font-family: "Manrope", sans-serif;
-      font-size: clamp(14px, 3vw, 18px);
+      font-size: clamp(12px, 1.55vw, 15px);
+      font-weight: 800;
       line-height: 1.28;
       color: #1c140f;
     }
-    .comic-inspect .options { margin-top: 8px; gap: 6px; }
+    .comic-inspect .options {
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      gap: 10px;
+    }
     .comic-inspect .option {
       background: #fff;
       border: 2px solid #1a1210;
       box-shadow: 3px 3px 0 #1a1210;
-      font-size: 13px;
-      padding: 8px 10px;
+      font-size: clamp(11px, 1.25vw, 12.5px);
+      font-weight: 700;
+      line-height: 1.35;
+      padding: 7px 8px;
     }
     .comic-inspect .option:hover { background: #fff6e8; }
-    .comic-inspect .hint { color: #9a4e28; }
+    .comic-inspect .hint {
+      color: #9a4e28;
+      flex-shrink: 0;
+      margin: 0;
+      min-height: 0;
+    }
+    .comic-inspect .hint:empty {
+      display: none;
+    }
     .comic-bubble::after,
     .comic-bubble::before {
       content: "";
@@ -900,7 +932,8 @@
     .comic-inspect .comic-nav {
       display: flex;
       justify-content: flex-end;
-      margin-top: 10px;
+      flex-shrink: 0;
+      margin-top: 0;
     }
     .comic-inspect .comic-back {
       margin: 0;
@@ -1407,20 +1440,7 @@
     }
 
     .bit-note {
-      position: absolute;
-      left: 24px;
-      right: 24px;
-      bottom: 92px;
-      z-index: 9;
-      max-width: 520px;
-      color: #eadfd2;
-      font-size: 15px;
-      line-height: 1.45;
-      min-height: 2.6em;
-      pointer-events: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: linear-gradient(90deg, rgba(12, 9, 8, 0.78), rgba(12, 9, 8, 0.18));
+      display: none;
     }
 
     .detail-bar {
@@ -1805,7 +1825,7 @@
 
     function prevBackLabel(i) {
       if (i <= 0) return "";
-      return `Вернуться в ${nodes[i - 1].backTo}`;
+      return "Вернуться";
     }
 
     const HERO_SRC = "./photos/hero.jpg";
@@ -2086,7 +2106,7 @@
               </svg>
               ${nodes.map((n) => `
                 <div class="node n-${n.id}" id="node-${n.id}" style="left:${n.x}px;top:${n.y}px">
-                  <div><div class="glyph"></div><span>${n.name}</span></div>
+                  <div><div class="glyph"></div></div>
                 </div>`).join("")}
               <div class="exit" id="exit"></div>
               ${girlParts("girl")}
@@ -2119,8 +2139,7 @@
       if (!panel) return;
       panel.innerHTML = `
         <article class="card">
-          <p class="progress">Узел ${i + 1} из ${nodes.length}</p>
-          <h2>${node.name}</h2>
+          <p class="progress">Место ${i + 1} из ${nodes.length}</p>
           <p class="lead" style="color:#6d5c4e">${node.blurb} Уменьшись и зайди внутрь: там можно крутить вид и тыкать в светящиеся точки.</p>
           <div class="nav-row">
             <button class="ghost ink" type="button" id="back-home">Назад</button>
@@ -2242,9 +2261,9 @@
       const noteEl = detail.querySelector("#bit-note");
       const backMap = detail.querySelector("#back-map");
       const backPrev = detail.querySelector("#back-prev");
-      if (label) label.textContent = node.name;
+      if (label) label.textContent = "";
       if (ask) {
-        ask.textContent = "Заглянуть в узел";
+        ask.textContent = "Заглянуть";
         ask.onclick = () => openNodeComic(i);
       }
       if (backMap) backMap.onclick = closeToMap;
@@ -2258,7 +2277,7 @@
           backPrev.onclick = null;
         }
       }
-      if (noteEl) noteEl.textContent = "Дошла до узла — замирает. Дальше вопрос в комиксе.";
+      if (noteEl) noteEl.textContent = "";
     }
 
     function showInterior(i, reveal = true) {
@@ -2269,16 +2288,14 @@
         return;
       }
       detail.innerHTML = `
-        <p class="scene-label">${node.name}</p>
-        <p class="look-hint">Крути мышью · точки подписывают детали</p>
         <div class="stage-3d" id="look-stage">
           <div id="gl-stage"></div>
-          <p class="bit-note" id="bit-note">Свет идёт слева направо: линзы → диафрагма → фокус → затвор → матрица.</p>
+          <p class="bit-note" id="bit-note" hidden></p>
         </div>
         <div class="detail-bar">
           <button class="ghost" type="button" id="back-map">Назад</button>
           <button class="ghost" type="button" id="back-prev" hidden></button>
-          <button class="action" type="button" id="ask">${node.action}</button>
+          <button class="action" type="button" id="ask">Заглянуть</button>
         </div>
       `;
       if (reveal) {
@@ -2288,7 +2305,7 @@
       bindAsk(i);
       const noteEl = detail.querySelector("#bit-note");
       const host = detail.querySelector("#gl-stage");
-        import("./world3d.js?v=paint18").then((mod) => {
+        import("./world3d.js?v=paint19").then((mod) => {
         try {
           worldHandle = mod.mountNodeScene(host, node.id, (text) => {
             noteEl.textContent = text;
@@ -2376,7 +2393,7 @@
       if (worldHandle) {
         bindAsk(index);
         const noteEl = detail.querySelector("#bit-note");
-        if (noteEl) noteEl.textContent = `Возвращается — к узлу «${prev.name}».`;
+        if (noteEl) noteEl.textContent = "";
         travelTo(index, true);
       } else {
         const panel = stage.querySelector("#panel");
@@ -2384,8 +2401,7 @@
           panel.innerHTML = `
             <article class="card">
               <p class="progress">Переход</p>
-              <h2>Назад, к узлу «${prev.name}»</h2>
-              <p class="lead" style="color:#6d5c4e;margin-top:12px">Человечек идёт против хода света.</p>
+              <p class="lead" style="color:#6d5c4e;margin-top:12px">Идёт против хода света.</p>
             </article>
           `;
         }
@@ -2397,6 +2413,17 @@
       openNodeComic(i);
     }
 
+    function shuffleOrder(n) {
+      const order = Array.from({ length: n }, (_, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = order[i];
+        order[i] = order[j];
+        order[j] = tmp;
+      }
+      return order;
+    }
+
     function openNodeComic(i) {
       const q = nodes[i];
       if (!q) return;
@@ -2406,15 +2433,23 @@
       }
       locked = false;
       const layer = document.createElement("div");
-      layer.className = "comic-inspect" + (q.id === "iso" ? " side-ask" : "");
+      const askCorner = ({
+        zoom: "ask-tr",
+        aperture: "ask-bl",
+        focus: "ask-tl",
+        shutter: "ask-br",
+        iso: "ask-tr"
+      })[q.id] || "ask-tr";
+      const optionOrder = shuffleOrder(q.options.length);
+      layer.className = "comic-inspect side-ask";
+      layer.dataset.node = q.id;
       layer.setAttribute("role", "dialog");
       layer.innerHTML = `
-        <video class="comic-art" poster="photos/comic-${q.id}.jpg?v=dress1" src="photos/comic-${q.id}.mp4?v=dress1" muted loop playsinline autoplay preload="auto"></video>
-        <div class="comic-ask">
-          <p class="comic-kicker">${q.name}</p>
+        <video class="comic-art" poster="photos/comic-${q.id}.jpg?v=sharp3" src="photos/comic-${q.id}.mp4?v=sharp3" muted loop playsinline autoplay preload="auto"></video>
+        <div class="comic-ask ${askCorner}">
           <h2>${q.title}</h2>
           <div class="options">
-            ${q.options.map((text, oi) => `<button class="option" type="button" data-i="${oi}">${text}</button>`).join("")}
+            ${optionOrder.map((oi) => `<button class="option" type="button" data-i="${oi}">${q.options[oi]}</button>`).join("")}
           </div>
           <p class="hint"></p>
           <div class="comic-nav">
@@ -2429,7 +2464,7 @@
         const fallback = () => {
           const img = document.createElement("img");
           img.className = "comic-art";
-          img.src = `photos/comic-${q.id}.jpg?v=dress1`;
+          img.src = `photos/comic-${q.id}.jpg?v=sharp3`;
           img.alt = "";
           art.replaceWith(img);
         };
@@ -2498,14 +2533,13 @@
       if (worldHandle) {
         bindAsk(index);
         const noteEl = detail.querySelector("#bit-note");
-        if (noteEl) noteEl.textContent = `Идёт дальше — к узлу «${next.name}».`;
+        if (noteEl) noteEl.textContent = "";
         travelTo(index, true);
       } else {
         stage.querySelector("#panel").innerHTML = `
           <article class="card">
             <p class="progress">Переход</p>
-            <h2>К узлу «${next.name}»</h2>
-            <p class="lead" style="color:#6d5c4e;margin-top:12px">Человечек идёт по ходу света.</p>
+            <p class="lead" style="color:#6d5c4e;margin-top:12px">Идёт по ходу света.</p>
           </article>
         `;
         setTimeout(() => arriveAt(index, false), 1200);

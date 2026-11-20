@@ -236,10 +236,8 @@ function addHotspots(id, parts, liveHots) {
     if (h.parent) h.parent.remove(h);
   });
   liveHots.length = 0;
-  (notes[id] || []).forEach((n) => {
-    const parent = (n.part && parts[n.part]) || parts.root;
-    liveHots.push(hotspot(parent, new THREE.Vector3(...n.p), n.t, n.title));
-  });
+  // Hotspot dots and hover captions are intentionally disabled —
+  // the player should explore without labeled tips.
 }
 
 function lensElement(radius, bulge, color = 0xd8e8ff, opacity = 0.4) {
