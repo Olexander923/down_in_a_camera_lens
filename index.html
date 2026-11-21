@@ -15,7 +15,7 @@
       }
     }
   </script>
-  <link rel="preload" as="image" href="photos/wake-fallen.jpg">
+  <link rel="preload" as="image" href="photos/wake-fallen.jpg?v=wide1">
   <link rel="preload" as="image" href="photos/wake-hands.jpg">
   <link rel="preload" as="image" href="photos/wake-stand.jpg">
   <link rel="preload" as="image" href="photos/comic-zoom.jpg">
@@ -396,6 +396,10 @@
       transform: scale(1.06);
       transition: opacity 0.8s ease;
     }
+    .wake-frame.fallen {
+      object-fit: cover;
+      object-position: center 55%;
+    }
     .wake-frame.on {
       opacity: 1;
       animation: wakeZoom 6.8s ease-out forwards;
@@ -615,6 +619,18 @@
       line-height: 1.4;
       background: #161412;
       border-radius: 12px;
+      min-height: 3.2em;
+      white-space: pre-wrap;
+    }
+    .shoot-desk .brief.typing::after {
+      content: "▌";
+      display: inline-block;
+      margin-left: 2px;
+      color: #e7b15a;
+      animation: type-caret 0.7s steps(1) infinite;
+    }
+    @keyframes type-caret {
+      50% { opacity: 0; }
     }
     .cam-body {
       flex: 0 1 auto;
@@ -2224,7 +2240,7 @@
       const wake = document.createElement("div");
       wake.className = "wake-layer";
       wake.innerHTML = `
-        <img class="wake-frame on" src="photos/wake-fallen.jpg" alt="">
+        <img class="wake-frame fallen on" src="photos/wake-fallen.jpg?v=wide1" alt="">
         <img class="wake-frame" src="photos/wake-hands.jpg" alt="">
         <img class="wake-frame" src="photos/wake-stand.jpg" alt="">
         <div class="comic-bubble">
@@ -2567,11 +2583,77 @@
       };
     }
 
+    let typeAudioCtx = null;
+    function playTypeClick() {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        if (!typeAudioCtx) typeAudioCtx = new AC();
+        const ctx = typeAudioCtx;
+        if (ctx.state === "suspended") ctx.resume();
+        const now = ctx.currentTime;
+        // Short mechanical typewriter strike
+        const osc = ctx.createOscillator();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(180 + Math.random() * 90, now);
+        osc.frequency.exponentialRampToValueAtTime(70, now + 0.03);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.11, now + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+        const lp = ctx.createBiquadFilter();
+        lp.type = "bandpass";
+        lp.frequency.value = 1400 + Math.random() * 800;
+        lp.Q.value = 1.2;
+        osc.connect(lp);
+        lp.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+        // Soft key thud
+        const thud = ctx.createOscillator();
+        thud.type = "triangle";
+        thud.frequency.setValueAtTime(55, now);
+        const tg = ctx.createGain();
+        tg.gain.setValueAtTime(0.0001, now);
+        tg.gain.exponentialRampToValueAtTime(0.05, now + 0.003);
+        tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+        thud.connect(tg);
+        tg.connect(ctx.destination);
+        thud.start(now);
+        thud.stop(now + 0.045);
+      } catch (_) {}
+    }
+
+    function typeBrief(el, text) {
+      const full = text;
+      el.textContent = "";
+      el.classList.add("typing");
+      let i = 0;
+      let timer = 0;
+      const step = () => {
+        if (!el.isConnected) return;
+        if (i >= full.length) {
+          el.classList.remove("typing");
+          el.textContent = full;
+          return;
+        }
+        const ch = full.charAt(i++);
+        el.textContent += ch;
+        if (ch.trim()) playTypeClick();
+        const pause = ch === "." || ch === "—" || ch === "," ? 140 : ch === " " ? 28 : 22 + Math.random() * 28;
+        timer = setTimeout(step, pause);
+      };
+      step();
+      return () => clearTimeout(timer);
+    }
+
     function openShootDesk() {
       const desk = document.createElement("div");
       desk.className = "shoot-desk";
+      const briefText = "Крути кольцо диафрагмы вправо до упора — так она открывается. Спуск — круглая кнопка сбоку. Экран двигай вверх-вниз, чтобы опустить горизонт.";
       desk.innerHTML = `
-        <p class="brief">Симулятор камеры. Крути кольцо диафрагмы вправо до упора — так она открывается. Спуск — круглая кнопка сбоку. Экран двигай вверх-вниз, чтобы опустить горизонт.</p>
+        <p class="brief" id="shoot-brief" aria-live="polite"></p>
         <div class="cam-body">
           <div class="cam-top">
             <div class="tiny-row">
@@ -2616,6 +2698,7 @@
         <p class="hint" id="shoot-hint">Цель: f/2.8 или шире · 1/250 или короче · ISO 200 или ниже · горизонт на нижней трети.</p>
       `;
       document.body.appendChild(desk);
+      typeBrief(desk.querySelector("#shoot-brief"), briefText);
       const apStops = ["f/11", "f/8", "f/5.6", "f/4", "f/2.8", "f/2", "f/1.4"];
       const shStops = ["1/30", "1/60", "1/125", "1/250", "1/500", "1/1000"];
       const isoStops = [100, 200, 400, 800, 1600, 3200, 6400, 12800];
@@ -2739,7 +2822,7 @@
           </div>
           <div class="message" id="message">
             <h1>Подарок твой!</h1>
-            <p>Ты выбралась. Коробка — твоя.</p>
+            <p>Ты выбралась. Поздравляю!</p>
             <p>С днем рождения, Чудо - женщина!</p>
           </div>
         </div>
